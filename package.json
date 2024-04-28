@@ -1,0 +1,37 @@
+{
+  "name": "@gtsopanoglou/babel-jest-boost",
+  "version": "0.0.2",
+  "description": "Babel plugin to boost jest performance by skipping intermediate imports",
+  "scripts": {
+    "test": "jest"
+  },
+  "exports": {
+    ".": "./package/index.js",
+    "./plugin": "./package/plugin/index.js",
+    "./config": "./package/config/index.js"
+  },
+  "author": "George Tsopanoglou",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-expect-message": "^1.1.3"
+  },
+  "dependencies": {
+    "app-root-dir": "^1.0.2",
+    "babel-jest": "^29.7.0",
+    "md5": "^2.3.0",
+    "resolve": "^1.22.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gtsop/babel-jest-boost.git"
+  },
+  "keywords": [
+    "babel",
+    "jest"
+  ],
+  "bugs": {
+    "url": "https://github.com/gtsop/babel-jest-boost/issues"
+  },
+  "homepage": "https://github.com/gtsop/babel-jest-boost#readme"
+}
