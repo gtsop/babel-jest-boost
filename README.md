@@ -65,3 +65,13 @@ You can let the plugin know that you do not wish to boost a particular file by a
 
 It is recommended that you start by adding the plugin and then either add probelmatic barel files to `importIgnorePatterns` or add the `no-boost` directive to specific source/test files until your test suite is green.
 
+# TODO
+
+- [ ] Refactor/clean up the codebase
+- [ ] Add coprehensive tests
+- [ ] Investigate typescript implementation
+- [ ] Try on various codebases and add tests that will ensure compatibility on future versions
+- [ ] Expose caching configuration (current caching increases RAM usage by a lot, give the option to shut it down at the cost of more CPU usage)
+- [ ] Figure out how to relief the user from having to pass in the jestConfig object.
+
+##
