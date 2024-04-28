@@ -49,13 +49,17 @@ plugins: [
 ]
 ```
 
-# Optios
+# Options
 
-The plugin accepts a `importIgnorePatterns` list of regexes which will prevent the plugin from bypassing all the files that match. Assuming the example in the description section above, adding `importIgnorePattersn: ['barel.js']` will prevent bar from importing from 'foo.js' and will instead regularly import from 'barel.js'.
+The plugin accepts a `importIgnorePatterns` list of regexes which will prevent the plugin from bypassing all the files that match. Assuming the example in the description section above, adding `importIgnorePatterns: ['barel.js']` will prevent bar from importing from 'foo.js' and will instead regularly import from 'barel.js'.
 
 # no-boost directive
 
 You can let the plugin know that you do not wish to boost a particular file by adding the following comment anywhere within the file (usually at the top)
+
+# Recomendation
+
+It is recommended that you start by adding the plugin and then either add probelmatic barel files to `importIgnorePatterns` or add the `no-boost` directive to specific source/test files until your test suite is green.
 
 ```
 // @babel-jest-boost no-boost
