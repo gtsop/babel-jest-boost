@@ -1,6 +1,6 @@
 {
   "name": "@gtsopanoglou/babel-jest-boost",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Babel plugin to boost jest performance by skipping intermediate imports",
   "scripts": {
     "test": "jest"
@@ -18,9 +18,11 @@
   },
   "dependencies": {
     "app-root-dir": "^1.0.2",
-    "babel-jest": "*",
     "md5": "^2.3.0",
     "resolve": "^1.22.8"
+  },
+  "peerDepedenceis": {
+    "babel-jest": "*"
   },
   "repository": {
     "type": "git",
