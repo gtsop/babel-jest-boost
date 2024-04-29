@@ -1,9 +1,9 @@
 /*
  * Returns a visitor which catches default export of the following manner:
  *
- * function foo () {}
+ * function specifier () {}
  *
- * export default foo; <-- Catches this
+ * export default specifier; <-- Catches this
  */
 function trace_export_default(state, specifierName, codeFilePath) {
   if (specifierName !== 'default') {
