@@ -1,8 +1,14 @@
 const { trace_export_default } = require('./trace_export_default');
 const { babelParse } = require('../utils');
-const traverse = require('@babel/traverse').default;
+const babelTraverse = require('@babel/traverse').default;
 
 let state = {};
+
+function traverse(code, visitors) {
+  const ast = babelParse(code);
+  return babelTraverse(ast, visitors);
+}
+
 describe('trace/trace_export_default', function() {
 
   beforeEach(function() {
@@ -10,32 +16,39 @@ describe('trace/trace_export_default', function() {
   });
 
   it('does not return a visitor when the specifier is not "default"', function() {
-    expect(trace_export_default(state, 'foo', 'foo.js')).toEqual({});
+    expect(trace_export_default(state, 'none', 'source.js')).toEqual({});
   });
 
   it('returns an "ExportDefaultDeclaration" visitor when specifier is "default"', function() {
 
-    const visitor = trace_export_default(state, 'default', 'foo.js')
+    const visitor = trace_export_default(state, 'default', 'source.js')
 
     expect(visitor.ExportDefaultDeclaration).toBeInstanceOf(Function);
   });
 
 
-  it('sets "match" on the state object when used as an AST visitor', function() {
+  describe('export default specifier', () => {
+    it('matches specifier when it exists', function() {
 
-    const code = 'export default foo';
+      const visitor = trace_export_default(state, 'default', 'source.js');
 
-    const ast = babelParse(code);
+      traverse('export default specifier', { ...visitor });
 
-    const visitor = trace_export_default(state, 'default', 'foo.js');
+      expect(state.match).toEqual({
+        name: 'default',
+        source: 'source.js',
+        file: 'source.js'
+      })
+      expect(state.traces).toEqual([]);
+    });
 
-    traverse(ast, { ...visitor });
+    it('does not match specifier when it does not exist', function() {
+      const visitor = trace_export_default(state, 'none', 'source.js');
 
-    expect(state.match).toEqual({
-      name: 'default',
-      source: 'foo.js',
-      file: 'foo.js'
-    })
-    expect(state.traces).toEqual([]);
+      traverse('export default specifier', { ...visitor });
+
+      expect(state.match).toEqual(false)
+      expect(state.traces).toEqual([]);
+    });
   });
 });

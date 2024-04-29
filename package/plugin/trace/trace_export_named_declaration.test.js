@@ -1,8 +1,14 @@
 const { trace_export_named_declaration } = require('./trace_export_named_declaration');
 const { babelParse } = require('../utils');
-const traverse = require('@babel/traverse').default;
+const babelTraverse = require('@babel/traverse').default;
 
 let state = {};
+
+function traverse(code, visitors) {
+  const ast = babelParse(code);
+  return babelTraverse(ast, visitors);
+}
+
 describe('trace/trace_export_named_declaration', function() {
 
   beforeEach(function() {
@@ -15,94 +21,101 @@ describe('trace/trace_export_named_declaration', function() {
 
   it('returns an "ExportNamedDeclaration" visitor when specifier is not "default"', function() {
 
-    const visitor = trace_export_named_declaration(state, 'foo', 'foo.js')
+    const visitor = trace_export_named_declaration(state, 'specifier', 'source.js')
 
     expect(visitor.ExportNamedDeclaration).toBeInstanceOf(Function);
   });
 
-  describe('export const foo = bar', function() {
+  describe('export const specifier = 1', function() {
     it('matches specifier when it exists', function() {
 
-      const code = 'export const foo = bar';
-      const codeFile = 'foo.js'
+      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', () => { });
 
-      const ast = babelParse(code);
-
-      const visitor = trace_export_named_declaration(state, 'foo', codeFile, () => { });
-
-      traverse(ast, { ...visitor });
+      traverse('export const specifier = 1', { ...visitor });
 
       expect(state.match).toEqual({
-        name: 'foo',
-        source: 'foo.js',
-        file: 'foo.js'
+        name: 'specifier',
+        source: 'source.js',
+        file: 'source.js'
       })
       expect(state.traces).toEqual([])
     });
 
     it('does not match specifier when it does not exist', function() {
 
-      const code = 'export const foo = bar';
-      const codeFile = 'foo.js'
+      const visitor = trace_export_named_declaration(state, 'none', 'source.js', () => { });
 
-      const ast = babelParse(code);
-
-      const visitor = trace_export_named_declaration(state, 'bar', codeFile, () => { });
-
-      traverse(ast, { ...visitor });
+      traverse('export const specifier = 1', { ...visitor });
 
       expect(state.match).toEqual(false)
       expect(state.traces).toEqual([])
     });
   })
 
-  describe("export { foo } from './foo.js'", function() {
+  describe("export { specifier } from './original.js'", function() {
     it('traces specifier when it exists', function() {
 
-      const code = 'export { foo } from "./foo.js"';
-      const codeFile = 'bar.js';
+      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p.source.value);
 
-      const ast = babelParse(code);
-
-      const visitor = trace_export_named_declaration(state, 'foo', codeFile, (p) => p.source.value);
-
-      traverse(ast, { ...visitor });
+      traverse('export { specifier } from "./original.js"', { ...visitor });
 
       expect(state.match).toEqual(false)
-      expect(state.traces).toEqual([{ name: 'foo', source: './foo.js', file: 'bar.js' }]);
+      expect(state.traces).toEqual([{ name: 'specifier', source: './original.js', file: 'source.js' }]);
     });
 
     it('does not trace specifiers that do not exist', function() {
-      const code = 'export { foo } from "./foo.js"';
-      const codeFile = 'bar.js';
 
-      const ast = babelParse(code);
+      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p.source.value);
 
-      const visitor = trace_export_named_declaration(state, 'bar', codeFile, (p) => p.source.value);
-
-      traverse(ast, { ...visitor });
+      traverse('export { specifier } from "./original.js"', { ...visitor });
 
       expect(state.match).toEqual(false)
       expect(state.traces).toEqual([]);
     });
   })
 
-  describe('export { foo }', function() {
+  describe('export { specifier }', function() {
 
     it('matches specifier when it exists', function() {
-      const code = 'const foo = () => {}; export { foo };';
-      const codeFile = 'bar.js';
 
-      const ast = babelParse(code);
+      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p.source.value);
 
-      const visitor = trace_export_named_declaration(state, 'foo', codeFile, (p) => p.source.value);
+      traverse('const specifier = () => {}; export { specifier };', { ...visitor });
 
-      traverse(ast, { ...visitor });
+      expect(state.match).toEqual({ name: 'specifier', source: 'source.js', file: 'source.js' })
+      expect(state.traces).toEqual([]);
+    });
 
-      expect(state.match).toEqual({ name: 'foo', source: 'bar.js', file: 'bar.js' })
+    it('does not match specifier when it does not exist', function() {
+
+      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p.source.value);
+
+      traverse('const specifier = () => {}; export { specifier };', { ...visitor });
+
+      expect(state.match).toEqual(false)
       expect(state.traces).toEqual([]);
     });
   });
 
+  describe('export const specifier = () => {}', function() {
+    it('matches specifier when it exists', function() {
 
+      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p.source.value);
+
+      traverse('export const specifier = () => {}', { ...visitor });
+
+      expect(state.match).toEqual({ name: 'specifier', source: 'source.js', file: 'source.js' })
+      expect(state.traces).toEqual([]);
+    });
+
+    it('does not match specifier when it does not exist', function() {
+
+      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p.source.value);
+
+      traverse('export const specifier = () => {}', { ...visitor });
+
+      expect(state.match).toEqual(false)
+      expect(state.traces).toEqual([]);
+    });
+  });
 });

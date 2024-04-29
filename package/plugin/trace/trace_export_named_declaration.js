@@ -50,7 +50,6 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
         });
       }
 
-      // Freaking stupid const declarations
       // export const foo = () => {}
       if (path?.node?.declaration?.declarations) {
         path.node.declaration.declarations.forEach((decl) => {
