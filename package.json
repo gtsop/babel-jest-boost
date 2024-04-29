@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "app-root-dir": "^1.0.2",
-    "babel-jest": "^29.7.0",
+    "babel-jest": "*",
     "md5": "^2.3.0",
     "resolve": "^1.22.8"
   },
