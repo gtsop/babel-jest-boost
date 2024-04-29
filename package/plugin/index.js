@@ -6,6 +6,8 @@ const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
 const { babelParse, matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
 
+const { traverse_export_default } = require('./traverse');
+
 let modulePaths = null;
 let moduleNameMapper = null;
 
@@ -44,19 +46,14 @@ const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(speci
   }
 
   let match = false;
+  let state = {
+    match: false
+  }
 
   const traces = [];
 
   traverse(ast, {
-    ExportDefaultDeclaration(path) {
-      if (specifierName === 'default') {
-        match = {
-          name: 'default',
-          source: codeFilePath,
-          file: codeFilePath,
-        };
-      }
-    },
+    ...traverse_export_default(state, specifierName, codeFilePath),
     ExportNamedDeclaration(path) {
       // single declaration export
       // declaration and export within this file
@@ -129,6 +126,8 @@ const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(speci
     result = traces.find((trace) => actualTraceSpecifierOrigin(trace.name, trace.source));
   } else if (match) {
     result = match;
+  } else if (state.match) {
+    result = state.match;
   } else {
     result = false;
   }
