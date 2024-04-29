@@ -1,5 +1,6 @@
 const nodepath = require('path');
 const traverse = require('@babel/traverse').default;
+const { trace_export_default } = require('./trace/trace_export_default');
 
 class Tracer {
   construct(resolve, codeToAst) {
@@ -20,7 +21,7 @@ class Tracer {
     }
 
     traverse(ast, {
-      ...traverse_export_default(state, specifierName, codeFilePath),
+      ...trace_export_default(state, specifierName, codeFilePath),
       ...traverse_export_named_declaration(state, specifierName, codeFilePath, this.resolve),
       ...traverse_export_all_declaration(state, specifierName, codeFilePath, this.resolve),
     });
