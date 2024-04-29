@@ -5,20 +5,10 @@ const traverse = require('@babel/traverse').default;
 const { get: getRootDir } = require('app-root-dir');
 const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
+const { matchAnyRegex } = require('./utils');
 
 let modulePaths = null;
 let moduleNameMapper = null;
-
-function matchAnyRegex(regexArray, haystack) {
-  for (let i = 0; i < regexArray.length; i++) {
-    const regexString = regexArray[i];
-    const regex = new RegExp(regexString);
-    if (regex.test(haystack)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 let importWhiteList = [];
 
