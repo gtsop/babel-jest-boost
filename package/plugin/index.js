@@ -1,12 +1,13 @@
 const fs = require('fs');
 const nodepath = require('path');
 const traverse = require('@babel/traverse').default;
-const { get: getRootDir } = require('app-root-dir');
 const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
 const { babelParse, matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
 
-const { traverse_export_default } = require('./traverse');
+const {
+  traverse_export_default,
+  traverse_export_named_declaration } = require('./traverse');
 
 let modulePaths = null;
 let moduleNameMapper = null;
@@ -46,69 +47,21 @@ const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(speci
   }
 
   let match = false;
-  let state = {
-    match: false
-  }
+
 
   const traces = [];
 
+  let state = {
+    match: false,
+
+    traces: traces
+  }
+
   traverse(ast, {
     ...traverse_export_default(state, specifierName, codeFilePath),
-    ExportNamedDeclaration(path) {
-      // single declaration export
-      // declaration and export within this file
-      if (path?.node?.declaration?.id?.name) {
-        if (specifierName === path.node.declaration.id.name) {
-          match = {
-            name: specifierName,
-            source: codeFilePath,
-            file: codeFilePath,
-          };
-        }
-      }
+    ...traverse_export_named_declaration(state, specifierName, codeFilePath, resolveImportFile),
 
-      // export specifiers, being imported from somewhere else
-      // eg export { foo } from './foo';
-      if (path.node.specifiers) {
-        path.node.specifiers.forEach((expSpecifier) => {
-          if (specifierName === expSpecifier.exported.name) {
-            // const foo = () => {}
-            // export { foo }'
-            if (!path.node?.source?.value) {
-              match = {
-                name: specifierName,
-                source: codeFilePath,
-                file: codeFilePath,
-              };
-            } else {
-              const source = resolveImportFile(path.node, nodepath.dirname(codeFilePath));
-              const isDefault = expSpecifier.local.name === 'default';
-              const name = isDefault ? 'default' : specifierName;
-              const trace = {
-                name,
-                source,
-                file: codeFilePath,
-              };
-              traces.push(trace);
-            }
-          }
-        });
-      }
 
-      // Freaking stupid const declarations
-      // export const foo = () => {}
-      if (path?.node?.declaration?.declarations) {
-        path.node.declaration.declarations.forEach((decl) => {
-          if (specifierName === decl.id.name) {
-            match = {
-              name: specifierName,
-              source: codeFilePath,
-              file: codeFilePath,
-            };
-          }
-        });
-      }
-    },
     ExportAllDeclaration(path) {
       // export all lie
       // export * from './foo.js'
