@@ -6,7 +6,7 @@ let state = {};
 describe('trace/trace_export_default', function() {
 
   beforeEach(function() {
-    state = new Object();
+    state = new Object({ match: false, traces: new Array() });
   });
 
   it('does not return a visitor when the specifier is not "default"', function() {
@@ -36,5 +36,6 @@ describe('trace/trace_export_default', function() {
       source: 'foo.js',
       file: 'foo.js'
     })
+    expect(state.traces).toEqual([]);
   });
 });
