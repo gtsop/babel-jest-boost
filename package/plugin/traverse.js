@@ -75,7 +75,22 @@ function traverse_export_named_declaration(state, specifierName, codeFilePath, r
   }
 }
 
+function traverse_export_all_declaration(state, specifierName, codeFilePath, resolve) {
+  return {
+    ExportAllDeclaration(path) {
+      // export all lie
+      // export * from './foo.js'
+      state.traces.push({
+        name: specifierName,
+        source: resolve(path.node, nodepath.dirname(codeFilePath)),
+        file: codeFilePath,
+      })
+    }
+  }
+}
+
 module.exports = {
   traverse_export_default,
-  traverse_export_named_declaration
+  traverse_export_named_declaration,
+  traverse_export_all_declaration
 };

@@ -4,10 +4,11 @@ const traverse = require('@babel/traverse').default;
 const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
 const { babelParse, matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
-
 const {
   traverse_export_default,
-  traverse_export_named_declaration } = require('./traverse');
+  traverse_export_all_declaration,
+  traverse_export_named_declaration
+} = require('./traverse');
 
 let modulePaths = null;
 let moduleNameMapper = null;
@@ -46,39 +47,20 @@ const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(speci
     return false;
   }
 
-  let match = false;
-
-
-  const traces = [];
-
   let state = {
     match: false,
-
-    traces: traces
+    traces: []
   }
 
   traverse(ast, {
     ...traverse_export_default(state, specifierName, codeFilePath),
     ...traverse_export_named_declaration(state, specifierName, codeFilePath, resolveImportFile),
-
-
-    ExportAllDeclaration(path) {
-      // export all lie
-      // export * from './foo.js'
-      const trace = {
-        name: specifierName,
-        source: resolveImportFile(path.node, nodepath.dirname(codeFilePath)),
-        file: codeFilePath,
-      };
-      traces.push(trace);
-    },
+    ...traverse_export_all_declaration(state, specifierName, codeFilePath, resolveImportFile),
   });
 
   let result;
-  if (traces.length) {
-    result = traces.find((trace) => actualTraceSpecifierOrigin(trace.name, trace.source));
-  } else if (match) {
-    result = match;
+  if (state.traces.length) {
+    result = state.traces.find((trace) => actualTraceSpecifierOrigin(trace.name, trace.source));
   } else if (state.match) {
     result = state.match;
   } else {
