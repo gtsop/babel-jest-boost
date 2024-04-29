@@ -1,4 +1,44 @@
 const nodepath = require('path');
+const traverse = require('@babel/traverse').default;
+
+class Tracer {
+  construct(resolve, codeToAst) {
+    this.resolve = resolve;
+    this.codeToAst = codeToAst;
+  }
+
+  traceOriginalExport(specifierName, codeFilePath) {
+    const ast = this.codeToAst(codeFilePath);
+
+    if (!ast) {
+      return false;
+    }
+
+    let state = {
+      match: false,
+      traces: []
+    }
+
+    traverse(ast, {
+      ...traverse_export_default(state, specifierName, codeFilePath),
+      ...traverse_export_named_declaration(state, specifierName, codeFilePath, this.resolve),
+      ...traverse_export_all_declaration(state, specifierName, codeFilePath, this.resolve),
+    });
+
+    let result;
+    if (state.traces.length) {
+      result = state.traces.find((trace) => this.traceOriginalExport(trace.name, trace.source));
+    } else if (state.match) {
+      result = state.match;
+    } else {
+      result = false;
+    }
+
+    return result;
+  }
+
+
+}
 function traverse_export_default(state, specifierName, codeFilePath) {
   if (specifierName !== 'default') {
     return {};
@@ -92,5 +132,6 @@ function traverse_export_all_declaration(state, specifierName, codeFilePath, res
 module.exports = {
   traverse_export_default,
   traverse_export_named_declaration,
-  traverse_export_all_declaration
+  traverse_export_all_declaration,
+  Tracer
 };

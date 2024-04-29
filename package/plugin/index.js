@@ -1,14 +1,9 @@
 const fs = require('fs');
 const nodepath = require('path');
-const traverse = require('@babel/traverse').default;
 const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
 const { babelParse, matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
-const {
-  traverse_export_default,
-  traverse_export_all_declaration,
-  traverse_export_named_declaration
-} = require('./traverse');
+const { Tracer, } = require('./traverse');
 
 let modulePaths = null;
 let moduleNameMapper = null;
@@ -40,34 +35,10 @@ const readCodeAsAST = function actualReadCodeAsAST(codeFilePath) {
   return babelParse(code);
 };
 
+const tracer = new Tracer(bjbResolve, readCodeAsAST);
+
 const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(specifierName, codeFilePath) {
-  const ast = readCodeAsAST(codeFilePath);
-
-  if (!ast) {
-    return false;
-  }
-
-  let state = {
-    match: false,
-    traces: []
-  }
-
-  traverse(ast, {
-    ...traverse_export_default(state, specifierName, codeFilePath),
-    ...traverse_export_named_declaration(state, specifierName, codeFilePath, resolveImportFile),
-    ...traverse_export_all_declaration(state, specifierName, codeFilePath, resolveImportFile),
-  });
-
-  let result;
-  if (state.traces.length) {
-    result = state.traces.find((trace) => actualTraceSpecifierOrigin(trace.name, trace.source));
-  } else if (state.match) {
-    result = state.match;
-  } else {
-    result = false;
-  }
-
-  return result;
+  return tracer.traceOriginalExport(specifierName, codeFilePath);
 });
 
 module.exports = function babelPlugin(babel) {
