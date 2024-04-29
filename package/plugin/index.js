@@ -149,7 +149,7 @@ const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(speci
 
   let result;
   if (traces.length) {
-    result = traces.find((trace) => traceSpecifierOrigin(trace.name, trace.source));
+    result = traces.find((trace) => actualTraceSpecifierOrigin(trace.name, trace.source));
   } else if (match) {
     result = match;
   } else {
