@@ -1,11 +1,10 @@
 const fs = require('fs');
 const nodepath = require('path');
-const babelParser = require('@babel/parser');
 const traverse = require('@babel/traverse').default;
 const { get: getRootDir } = require('app-root-dir');
 const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
-const { matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
+const { babelParse, matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
 
 let modulePaths = null;
 let moduleNameMapper = null;
@@ -17,7 +16,6 @@ const isPathWhitelisted = withCache(function actualIsPathWhitelisted(path) {
   return matchAnyRegex(importWhiteList, path);
 });
 
-
 // eslint-disable-next-line
 const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
   if (isPathWhitelisted(path)) {
@@ -28,15 +26,6 @@ const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
 
 function resolveImportFile(importDeclarationNode, from) {
   return bjbResolve(importDeclarationNode.source.value, from);
-}
-
-const parserConfig = {
-  sourceType: 'module',
-  plugins: ['jsx', 'tsx', 'typescript', 'decorators-legacy'],
-};
-
-function babelParse(code) {
-  return babelParser.parse(code, parserConfig);
 }
 
 const readCodeAsAST = function actualReadCodeAsAST(codeFilePath) {
