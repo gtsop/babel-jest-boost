@@ -4,7 +4,7 @@
 
 Improve the performance of your jest tests via bypassing re-exports and barel files which prevents jest from requiring, compiling and running code you did not intend to run.
 
-This plugin modifies your code test-time (when babel-jest transpiles your code to be ran in jest). It will figure out the original exporter of every specifier imported in the files being ran by jest and modify these imports to directly require the specifiers from the original exporter. For instance, assume this file structure:
+This plugin modifies your code test-time (when babel-jest transpiles your code to be ran in jest). It will figure out the original exporter of every specifier imported in the files and modify these imports to directly require the specifiers from the original exporter. For instance, assume this file structure:
 
 ```
 .
@@ -32,7 +32,7 @@ npm install -D @gtsopanoglou/babel-jest-boost
 
 # How to use
 
-1. Use the plugin in your transformer
+## 1. Use the plugin in your transformer
 
 Modify, your babel-jest transformer to use the plugin. It needs access to jest's config, as such a helper object is being exported to help you it:
 
@@ -49,21 +49,29 @@ plugins: [
 ]
 ```
 
-2. Test your codebase and block/skip problematic files
+## 2. Test your codebase and block/skip problematic files
 
-Run your test suite as normal. It is very likely that some tests of yours will now break. This will be cause by some implicit depedency in your code that you are probably not aware of, but also not willing to fix right now. It order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and `no-boost` directive.
+Run your test suite as normal. However, since `babel-jest-boost` modifies the transpiled code, you'll need to clear jest's cache before each run to ensure you see non-cached results:
 
-Use `importIgnorePatterns` to batch-block specific barels or paths are commonly imported in your codebase and are causing your tests to break (since you added this plugin)
+```
+jest --clearCache && jest
+```
 
-Use `no-boost` directive to hand-pick specific test or source code files that are breaking since you added this plugin
+Or whatever you testing command is, just make sure to clear your cache before each run while you integrate this plugin for the first time. 
 
-3. (optional) Refactor
+It is very likely that some tests of yours will now break. This will be caused by some implicit depedency in your code that you are probably not aware of, but also not willing to fix right now. It order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and `no-boost` directive.
 
-Now that you've blocked some files from this plugin, you have some candidates for refactoring. These files most likely have huge import lists, much mocking or implicit depdencies you did not realize. Performance aside, you will benefit from figuring out exactly what causes the problem and refactor the code to fix the issue;
+1. Use `importIgnorePatterns` to batch-block specific barels or paths are commonly imported in your codebase and are causing your tests to break (since you added this plugin)
 
-## Plugin options
+2. Use `no-boost` directive to hand-pick specific test or source code files that are breaking (since you added this plugin)
 
-### `importIgnorePatterns` **[array\<string\>]**
+## 3. (optional) Refactor
+
+Now that you've blocked some files from this plugin, you have some candidates for refactoring. These files most likely have huge import lists, much mocking or implicit depdencies you did not realize. Performance aside, you will benefit from figuring out exactly what causes the problem and refactor the code to fix the issue
+
+# Plugin options
+
+## `importIgnorePatterns` **[array\<string\>]**
 
 Array of strings/regexes, files matching these regexes will block `babel-jest-boost` from bypassing them. For instance, assuming the example above:
 
@@ -77,9 +85,9 @@ Array of strings/regexes, files matching these regexes will block `babel-jest-bo
 
 We can use `{ importIgnorePatterns: ['./lib'] }` to prevent `babel-jest-boost` from modifying any imports pointing to `lib`.
 
-## Plugin directives
+# Plugin directives
 
-### `no-boost`
+## `no-boost`
 
 You can let the plugin know that you do not wish to boost a particular file by adding the following comment anywhere within the file (usually at the top)
 
