@@ -5,7 +5,7 @@ const traverse = require('@babel/traverse').default;
 const { get: getRootDir } = require('app-root-dir');
 const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
-const { matchAnyRegex } = require('./utils');
+const { matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
 
 let modulePaths = null;
 let moduleNameMapper = null;
@@ -17,8 +17,6 @@ const isPathWhitelisted = withCache(function actualIsPathWhitelisted(path) {
   return matchAnyRegex(importWhiteList, path);
 });
 
-const removeItemsByIndexesInPlace = (indexes, array) =>
-  indexes.sort((a, b) => b - a).forEach((i) => array.splice(i, 1));
 
 // eslint-disable-next-line
 const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {

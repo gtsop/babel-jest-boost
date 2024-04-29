@@ -9,6 +9,10 @@ function matchAnyRegex(regexArray, haystack) {
   return false;
 }
 
+function removeItemsByIndexesInPlace(indexes, array) {
+  return indexes.sort((a, b) => b - a).forEach((i) => array.splice(i, 1));
+}
 module.exports = {
   matchAnyRegex,
+  removeItemsByIndexesInPlace
 }
