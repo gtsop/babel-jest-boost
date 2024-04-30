@@ -5,7 +5,7 @@ const { trace_export_named_declaration } = require('./trace/trace_export_named_d
 const { trace_export_all_declaration } = require('./trace/trace_export_all_declaration');
 
 class Tracer {
-  construct(resolve, codeToAst) {
+  constructor(resolve, codeToAst) {
     this.resolve = resolve;
     this.codeToAst = codeToAst;
   }
