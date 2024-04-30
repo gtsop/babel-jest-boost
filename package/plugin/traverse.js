@@ -23,7 +23,7 @@ class Tracer {
     }
 
     traverse(ast, {
-      ...trace_export_default(state, specifierName, codeFilePath),
+      ...trace_export_default(state, specifierName, codeFilePath, this.resolve),
       ...trace_export_named_declaration(state, specifierName, codeFilePath, this.resolve),
       ...trace_export_all_declaration(state, specifierName, codeFilePath, this.resolve),
     });

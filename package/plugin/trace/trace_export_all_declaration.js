@@ -7,7 +7,7 @@ function trace_export_all_declaration(state, specifierName, codeFilePath, resolv
       // export * from './original.js'
       state.traces.push({
         name: specifierName,
-        source: resolve(path.node, nodepath.dirname(codeFilePath)),
+        source: resolve(path.node.source.value, nodepath.dirname(codeFilePath)),
         file: codeFilePath,
       })
     }

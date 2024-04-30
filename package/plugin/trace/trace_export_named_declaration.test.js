@@ -55,7 +55,7 @@ describe('trace/trace_export_named_declaration', function() {
   describe("export { specifier } from './original.js'", function() {
     it('traces specifier when it exists', function() {
 
-      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p.source.value);
+      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p);
 
       traverse('export { specifier } from "./original.js"', { ...visitor });
 
@@ -65,7 +65,7 @@ describe('trace/trace_export_named_declaration', function() {
 
     it('does not trace specifiers that do not exist', function() {
 
-      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p.source.value);
+      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p);
 
       traverse('export { specifier } from "./original.js"', { ...visitor });
 
@@ -78,7 +78,7 @@ describe('trace/trace_export_named_declaration', function() {
 
     it('matches specifier when it exists', function() {
 
-      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p.source.value);
+      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p);
 
       traverse('const specifier = () => {}; export { specifier };', { ...visitor });
 
@@ -88,7 +88,7 @@ describe('trace/trace_export_named_declaration', function() {
 
     it('does not match specifier when it does not exist', function() {
 
-      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p.source.value);
+      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p);
 
       traverse('const specifier = () => {}; export { specifier };', { ...visitor });
 
@@ -100,7 +100,7 @@ describe('trace/trace_export_named_declaration', function() {
   describe('export const specifier = () => {}', function() {
     it('matches specifier when it exists', function() {
 
-      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p.source.value);
+      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p);
 
       traverse('export const specifier = () => {}', { ...visitor });
 
@@ -110,7 +110,7 @@ describe('trace/trace_export_named_declaration', function() {
 
     it('does not match specifier when it does not exist', function() {
 
-      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p.source.value);
+      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p);
 
       traverse('export const specifier = () => {}', { ...visitor });
 

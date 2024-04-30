@@ -36,7 +36,7 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
               };
             } else {
               // export { specifier } from './original';
-              const source = resolve(path.node, nodepath.dirname(codeFilePath));
+              const source = resolve(path.node.source.value, nodepath.dirname(codeFilePath));
               const isDefault = expSpecifier.local.name === 'default';
               const name = isDefault ? 'default' : specifierName;
               const trace = {

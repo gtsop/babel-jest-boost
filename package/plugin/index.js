@@ -35,7 +35,7 @@ const readCodeAsAST = function actualReadCodeAsAST(codeFilePath) {
   return babelParse(code);
 };
 
-const tracer = new Tracer(resolveImportFile, readCodeAsAST);
+const tracer = new Tracer(bjbResolve, readCodeAsAST);
 
 const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(specifierName, codeFilePath) {
   return tracer.traceOriginalExport(specifierName, codeFilePath);

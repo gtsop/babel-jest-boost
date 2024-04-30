@@ -30,7 +30,7 @@ describe('trace/trace_export_all_declaration', function() {
   describe('export * from "./original"', () => {
     it('traces specifier to glob exports', function() {
 
-      const visitor = trace_export_all_declaration(state, 'specifier', 'source.js', (p) => p.source.value);
+      const visitor = trace_export_all_declaration(state, 'specifier', 'source.js', (p) => p);
 
       traverse('export * from "./original"', { ...visitor });
 
