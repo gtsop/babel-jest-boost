@@ -34,7 +34,7 @@ npm install -D @gtsopanoglou/babel-jest-boost
 
 ## 1. Use the plugin in your transformer
 
-Modify, your babel-jest transformer to use the plugin. It needs access to jest's config, as such a helper object is being exported to help you it:
+Modify, your babel-jest transformer to use the plugin. It needs access to jest's config, as such a helper object is being exported to help you do it:
 
 ```
 const { jestConfig } = require("@gtsopanoglou/babel-jest-boost/config");
@@ -51,29 +51,29 @@ plugins: [
 
 ## 2. Test your codebase and block/skip problematic files
 
-Run your test suite as normal. However, since `babel-jest-boost` modifies the transpiled code, you'll need to clear jest's cache before each run to ensure you see non-cached results:
+In order to integrate this plugin you're gonna need to run your test suite and fix potential breakages. Since `babel-jest-boost` modifies the transpiled code, you'll need to clear jest's cache before each run during this step to ensure you see non-cached results:
 
 ```
-jest --clearCache && jest
+jest --clearCache && jest # or whatever you testing command is
 ```
 
-Or whatever you testing command is, just make sure to clear your cache before each run while you integrate this plugin for the first time. 
-
-It is very likely that some tests of yours will now break. This will be caused by some implicit depedency in your code that you are probably not aware of, but also not willing to fix right now. It order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and `no-boost` directive.
+It is very likely that some tests of yours will now break. This will be caused by some implicit dependency in your code that you're probably not aware of, but also not willing to fix right now. In order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and `no-boost` directive.
 
 1. Use `importIgnorePatterns` to batch-block specific barels or paths are commonly imported in your codebase and are causing your tests to break (since you added this plugin)
 
 2. Use `no-boost` directive to hand-pick specific test or source code files that are breaking (since you added this plugin)
 
+3. Re-iterate until your tests are green again.
+
 ## 3. (optional) Refactor
 
-Now that you've blocked some files from this plugin, you have some candidates for refactoring. These files most likely have huge import lists, much mocking or implicit depdencies you did not realize. Performance aside, you will benefit from figuring out exactly what causes the problem and refactor the code to fix the issue
+Now that you've blocked some files from this plugin and your tests are green again, you have some candidates for refactoring. These files most likely have huge import lists, much mocking or implicit depdencies you did not realize. Performance aside, you will benefit from figuring out exactly what causes the problem and refactor the code to fix the issue
 
 # Plugin options
 
 ## `importIgnorePatterns` **[array\<string\>]**
 
-Array of strings/regexes, files matching these regexes will block `babel-jest-boost` from bypassing them. For instance, assuming the example above:
+Array of strings/regexes, files matching these regexes will block `babel-jest-boost` from bypassing them. These regexes are being matched against the import paths within your code. For instance, assuming the example above:
 
 ```
 .
@@ -83,17 +83,38 @@ Array of strings/regexes, files matching these regexes will block `babel-jest-bo
 └── code.js        // import { libFunc } from './lib';
 ```
 
-We can use `{ importIgnorePatterns: ['./lib'] }` to prevent `babel-jest-boost` from modifying any imports pointing to `lib`.
+In this scenario, `importIgnorePatterns` will be matched against the only import statement in this tree, `import { libFunc } from './lib'`, so if you wish to exclude imports to `./lib` from being re-written, you can use:
+
+```
+{ importIgnorePatterns: ['./lib'] }
+```
+
+Here is another way of looking at it, assume your code imports a `utilFunc` via a barel file:
+
+code.js imports barel.js imports utilFunc.js
+
+The plugin will have this effect:
+
+code.js imports ~~barel.js imports~~ utilFunc.js
+
+Using `{ importIgnorePatterns: ['barel.js']}` will prevent the plugin from bypassing `barel.js`, leaving your code as before:
+
+code.js imports barel.js imports utilFunc.js
+
+This is intended to help you defer refactoring some barels or modules that are causing trouble or breaking your tests when you integrate this plugin. 
+
 
 # Plugin directives
 
 ## `no-boost`
 
-You can let the plugin know that you do not wish to boost a particular file by adding the following comment anywhere within the file (usually at the top)
+You can let the plugin know that you do not wish to parse a particular file by adding the following comment anywhere within the file (usually at the top)
 
 ```
 // @babel-jest-boost no-boost
 ```
+
+Any import statements within this particular file will not be re-written.
 
 # TODO
 
