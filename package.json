@@ -1,6 +1,6 @@
 {
   "name": "@gtsopanoglou/babel-jest-boost",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Babel plugin to boost jest performance by skipping intermediate imports",
   "scripts": {
     "test": "jest",
