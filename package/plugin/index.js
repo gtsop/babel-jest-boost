@@ -4,10 +4,6 @@ const { withCache } = require('../cache');
 const { babelParse, matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
 const { Tracer, } = require('./traverse');
 
-function log(...args) {
-  // console.log(' ===== babel-jest-boost', ...args)
-}
-
 let modulePaths = null;
 let moduleNameMapper = null;
 
@@ -40,7 +36,6 @@ module.exports = function babelPlugin(babel) {
   return {
     visitor: {
       Program(path, state) {
-        log('================ parsing file', state.file.opts.filename)
         // setup config
         moduleNameMapper = state.opts.jestConfig?.moduleNameMapper || {};
         modulePaths = state.opts.jestConfig?.modulePaths || [];
@@ -113,7 +108,6 @@ module.exports = function babelPlugin(babel) {
               // then just replace the source
               if (path.node.specifiers.length === 1) {
                 if (specifier.local.name === specifierOrigin.name) {
-                  log('replacing ', specifierOrigin.name, specifierOrigin.source)
                   // just replace the import path;
                   path.node.source = babel.types.stringLiteral(specifierOrigin.source)
                   return;
@@ -128,7 +122,7 @@ module.exports = function babelPlugin(babel) {
                   babel.types.stringLiteral(specifierOrigin.source),
                 )
                 path.replaceWith(newImport);
-                path.stop();
+                path.skip();
                 return;
               }
               // If this is a multiple specifier, as
