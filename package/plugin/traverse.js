@@ -1,17 +1,39 @@
 const traverse = require('@babel/traverse').default;
+const babelParser = require('@babel/parser');
 
 const { trace_export_default } = require('./trace/trace_export_default');
 const { trace_export_named_declaration } = require('./trace/trace_export_named_declaration');
 const { trace_export_all_declaration } = require('./trace/trace_export_all_declaration');
 
+const parserConfig = {
+  sourceType: 'module',
+  plugins: ['jsx', 'tsx', 'typescript', 'decorators-legacy'],
+};
+
+function babelParse(code) {
+  return babelParser.parse(code, parserConfig);
+}
+
 class Tracer {
-  constructor(resolve, codeToAst) {
+
+  constructor(resolve) {
     this.resolve = resolve;
-    this.codeToAst = codeToAst;
+  }
+
+  codeFileToAST(codeFilePath) {
+    const resolvedPath = this.resolve(codeFilePath);
+
+    const code = fs.readFileSync(resolvedPath, 'utf-8');
+
+    return this.codeToAST(code);
+  }
+
+  codeToAST(code) {
+    return babelParser.parse(code, parserConfig);
   }
 
   traceOriginalExport(specifierName, codeFilePath) {
-    const ast = this.codeToAst(codeFilePath);
+    const ast = this.codeFileToAST(codeFilePath);
 
     if (!ast) {
       return false;

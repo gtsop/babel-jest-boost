@@ -23,19 +23,7 @@ const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
   return resolve(path, basedir, moduleNameMapper, modulePaths);
 });
 
-function resolveImportFile(importDeclarationNode, from) {
-  return bjbResolve(importDeclarationNode.source.value, from);
-}
-
-const readCodeAsAST = function actualReadCodeAsAST(codeFilePath) {
-  const resolvedPath = bjbResolve(codeFilePath);
-
-  const code = fs.readFileSync(resolvedPath, 'utf-8');
-
-  return babelParse(code);
-};
-
-const tracer = new Tracer(bjbResolve, readCodeAsAST);
+const tracer = new Tracer(bjbResolve);
 
 const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(specifierName, codeFilePath) {
   return tracer.traceOriginalExport(specifierName, codeFilePath);
@@ -104,7 +92,7 @@ module.exports = function babelPlugin(babel) {
             return;
           }
           if (!specifier?.imported?.name) return;
-          const importedFrom = resolveImportFile(path.node, nodepath.dirname(state.file.opts.filename));
+          const importedFrom = bjbResolve(path.node.source.value, nodepath.dirname(state.file.opts.filename));
 
           if (importedFrom) {
             const specifierOrigin = traceSpecifierOrigin(specifier.imported.name, importedFrom);
