@@ -1,3 +1,4 @@
+const fs = require('fs');
 const traverse = require('@babel/traverse').default;
 const babelParser = require('@babel/parser');
 
