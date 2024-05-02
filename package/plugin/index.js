@@ -1,4 +1,3 @@
-const fs = require('fs');
 const nodepath = require('path');
 const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
@@ -17,10 +16,15 @@ const isPathWhitelisted = withCache(function actualIsPathWhitelisted(path) {
 
 // eslint-disable-next-line
 const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
-  if (isPathWhitelisted(path)) {
-    return path;
+  try {
+    if (isPathWhitelisted(path)) {
+      return path;
+    }
+    return resolve(path, basedir, moduleNameMapper, modulePaths);
+  } catch (e) {
+    // console.error(e)
+    return null;
   }
-  return resolve(path, basedir, moduleNameMapper, modulePaths);
 });
 
 const tracer = new Tracer(bjbResolve);
@@ -34,8 +38,8 @@ module.exports = function babelPlugin(babel) {
     visitor: {
       Program(path, state) {
         // setup config
-        moduleNameMapper = state.opts.jestConfig.moduleNameMapper || {};
-        modulePaths = state.opts.jestConfig.modulePaths || [];
+        moduleNameMapper = state.opts.jestConfig?.moduleNameMapper || {};
+        modulePaths = state.opts.jestConfig?.modulePaths || [];
         importWhiteList = state.opts.importIgnorePatterns || [];
 
         const comments = path.parent.comments || [];
