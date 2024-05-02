@@ -89,17 +89,17 @@ In this scenario, `importIgnorePatterns` will be matched against the only import
 { importIgnorePatterns: ['./lib'] }
 ```
 
-Here is another way of looking at it, assume your code imports a `utilFunc` via a barel file:
+Here is another way of looking at it, assume your code imports a `libFunc` via a barel file:
 
-code.js imports barel.js imports utilFunc.js
+code.js -> imports ./lib/index.js -> imports libFunc.js
 
 The plugin will have this effect:
 
-code.js imports ~~barel.js imports~~ utilFunc.js
+code.js -> imports ~~./lib/index.js imports ->~~ libFunc.js
 
-Using `{ importIgnorePatterns: ['barel.js']}` will prevent the plugin from bypassing `barel.js`, leaving your code as before:
+Using `{ importIgnorePatterns: ['./lib']}` will prevent the plugin from bypassing `./lib`, leaving your code as before:
 
-code.js imports barel.js imports utilFunc.js
+code.js -> imports ./lib/index.js -> imports libFunc.js
 
 This is intended to help you defer refactoring some barels or modules that are causing trouble or breaking your tests when you integrate this plugin. 
 
