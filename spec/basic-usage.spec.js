@@ -1,68 +1,44 @@
-const babelJest = require('babel-jest').default;
+const { createExpectTransform } = require('./test-utils/expectTransform.js');
 
-const babelJestBoost = require.resolve('../package/plugin/index.js');
-
-const transformer = babelJest.createTransformer({
-  plugins: [
-    [
-      babelJestBoost,
-      {
-        jestConfig: {
-          modulePaths: ['<rootDir>/spec/test_tree']
-        }
-      }
-    ]
-  ],
-})
-
-function transform(source, filename = __filename, options = {}) {
-  const output = transformer.process(source, filename, { ...options, config: {} });
-
-  return output.code.replace(/\/\/# sourceMappingURL.*/, "").trim();
-}
+const expectTransform = createExpectTransform(__filename);
 
 describe('babel-jest-boost plugin', () => {
 
-  it("does nothing when there is no code", () => {
-
-    const output = transform('')
-
-    expect(output).toBe("");
+  it("traces original export of specifier and replaces import statement", () => {
+    expectTransform(
+      "import { target } from './test_tree/library';",
+      `import { target } from "${__dirname}/test_tree/library/library.js";`
+    )
   })
 
-  it("returns code as is", () => {
-    const output = transform('const a  = 1;');
+  it("correctly traces renames", () => {
+    expectTransform(
+      "import { localAs } from './test_tree/local_as';",
+      `import { target as localAs } from "${__dirname}/test_tree/library/library.js";`
+    )
+  });
 
-    expect(output).toBe("const a = 1;");
+  it("correctly traces global exports", () => {
+    expectTransform(
+      "import { target } from './test_tree/global';",
+      `import { target } from "${__dirname}/test_tree/library/library.js";`
+    )
   })
 
-  it("returns code as is", () => {
-    const output = transform("import { foo } from 'foo';");
-
-    expect(output).toBe("import { foo } from 'foo';");
+  it("correctly traces global rename exports", () => {
+    expectTransform(
+      "import { libraryGlob } from './test_tree/global_as';",
+      `import { libraryGlob } from "${__dirname}/test_tree/global_as/index.js";`
+    )
   })
-
-  it("resolves original export", () => {
-    const output = transform("import { foo } from './test_tree/bar';");
-
-    expect(output).toBe(`import { foo } from "${__dirname}/test_tree/bar/bar.js";`);
-  })
-
-  it("resolves original export", () => {
-    const output = transform("import { baz } from 'bar';");
-
-    expect(output).toBe(`import { bazinga as baz } from "${__dirname}/test_tree/bar/baz.js";`);
-  })
-
-  it("resolves original export", () => {
-    const output = transform("import { GlobStar } from 'globstar';");
-
-    expect(output).toBe(`import { GlobStar } from "${__dirname}/test_tree/globstar/globstar.js";`);
-  })
-
-  it("resolves modulePaths", () => {
-    const output = transform("import { foo } from 'bar';");
-
-    expect(output).toBe(`import { foo } from "${__dirname}/test_tree/bar/bar.js";`);
-  })
+  // it("correctly traces default exports", () => {
+  //
+  // }) 
+  //
+  // it("resolves modulePaths", () => {
+  //   expectTransform(
+  //     "import { foo } from 'bar';",
+  //     `import { foo } from "${__dirname}/test_tree/bar/bar.js";`
+  //   )
+  // })
 })

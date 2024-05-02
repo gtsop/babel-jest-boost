@@ -54,7 +54,9 @@ class Tracer {
     if (state.match) {
       return state.match;
     } else if (state.traces.length) {
-      return state.traces.find((trace) => this.traceOriginalExport(trace.name, trace.source));
+      return state.traces
+        .map((trace) => this.traceOriginalExport(trace.name, trace.source))
+        .find((trace) => trace?.source)
     } else {
       return false;
     }

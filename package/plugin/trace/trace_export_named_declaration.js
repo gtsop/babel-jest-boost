@@ -51,7 +51,7 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
                 // export * as specifier from './original';
                 state.match = {
                   name: expSpecifier.exported.name,
-                  source,
+                  source: codeFilePath,
                   file: codeFilePath
                 }
               } else {
