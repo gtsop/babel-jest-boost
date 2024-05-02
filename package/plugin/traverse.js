@@ -51,10 +51,10 @@ class Tracer {
       ...trace_export_all_declaration(state, specifierName, codeFilePath, this.resolve),
     });
 
-    if (state.traces.length) {
-      return state.traces.find((trace) => this.traceOriginalExport(trace.name, trace.source));
-    } else if (state.match) {
+    if (state.match) {
       return state.match;
+    } else if (state.traces.length) {
+      return state.traces.find((trace) => this.traceOriginalExport(trace.name, trace.source));
     } else {
       return false;
     }

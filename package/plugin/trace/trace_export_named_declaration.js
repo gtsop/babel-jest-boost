@@ -13,11 +13,14 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
       // export const specifier = 1;
       if (path?.node?.declaration?.id?.name) {
         if (specifierName === path.node.declaration.id.name) {
-          state.match = {
+          const match = {
             name: specifierName,
             source: codeFilePath,
             file: codeFilePath,
           };
+
+          state.match = match
+          // return;
         }
       }
 
@@ -35,16 +38,30 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
                 file: codeFilePath,
               };
             } else {
-              // export { specifier } from './original';
               const source = resolve(path.node.source.value, nodepath.dirname(codeFilePath));
-              const isDefault = expSpecifier.local.name === 'default';
-              const name = isDefault ? 'default' : specifierName;
-              const trace = {
-                name,
-                source,
-                file: codeFilePath,
-              };
-              state.traces.push(trace);
+
+              if (expSpecifier.local?.name === 'default') {
+                // export { default as specifier } from './original';
+                state.traces.push({
+                  name: 'default',
+                  source,
+                  file: codeFilePath
+                })
+              } else if (expSpecifier.type === "ExportNamespaceSpecifier") {
+                // export * as specifier from './original';
+                state.match = {
+                  name: expSpecifier.exported.name,
+                  source,
+                  file: codeFilePath
+                }
+              } else {
+                // export { specifier } from './original';
+                state.traces.push({
+                  name: expSpecifier.local.name,
+                  source,
+                  file: codeFilePath,
+                });
+              }
             }
           }
         });

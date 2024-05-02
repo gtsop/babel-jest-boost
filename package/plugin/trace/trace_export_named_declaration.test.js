@@ -118,4 +118,26 @@ describe('trace/trace_export_named_declaration', function() {
       expect(state.traces).toEqual([]);
     });
   });
+
+  describe("export * as specifier from './original.js'", function() {
+    it('matches specifier when it exists', function() {
+
+      const visitor = trace_export_named_declaration(state, 'specifier', 'source.js', (p) => p);
+
+      traverse("export * as specifier from './original.js'", { ...visitor });
+
+      expect(state.match).toEqual({ name: 'specifier', source: './original.js', file: 'source.js' })
+      expect(state.traces).toEqual([]);
+    });
+
+    it('does not match specifier when it does not exist', function() {
+
+      const visitor = trace_export_named_declaration(state, 'none', 'source.js', (p) => p);
+
+      traverse("export * as specifier from './original.js'", { ...visitor });
+
+      expect(state.match).toEqual(false)
+      expect(state.traces).toEqual([]);
+    });
+  });
 });

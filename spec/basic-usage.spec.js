@@ -45,12 +45,24 @@ describe('babel-jest-boost plugin', () => {
   it("resolves original export", () => {
     const output = transform("import { foo } from './test_tree/bar';");
 
-    expect(output).toBe(`import { "foo" as foo } from "${__dirname}/test_tree/bar/bar.js";`);
+    expect(output).toBe(`import { foo } from "${__dirname}/test_tree/bar/bar.js";`);
+  })
+
+  it("resolves original export", () => {
+    const output = transform("import { baz } from 'bar';");
+
+    expect(output).toBe(`import { bazinga as baz } from "${__dirname}/test_tree/bar/baz.js";`);
+  })
+
+  it("resolves original export", () => {
+    const output = transform("import { GlobStar } from 'globstar';");
+
+    expect(output).toBe(`import { GlobStar } from "${__dirname}/test_tree/globstar/globstar.js";`);
   })
 
   it("resolves modulePaths", () => {
     const output = transform("import { foo } from 'bar';");
 
-    expect(output).toBe(`import { "foo" as foo } from "${__dirname}/test_tree/bar/bar.js";`);
+    expect(output).toBe(`import { foo } from "${__dirname}/test_tree/bar/bar.js";`);
   })
 })

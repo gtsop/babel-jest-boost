@@ -4,6 +4,10 @@ const { withCache } = require('../cache');
 const { babelParse, matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
 const { Tracer, } = require('./traverse');
 
+function log(...args) {
+  // console.log(' ===== babel-jest-boost', ...args)
+}
+
 let modulePaths = null;
 let moduleNameMapper = null;
 
@@ -22,7 +26,6 @@ const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
     }
     return resolve(path, basedir, moduleNameMapper, modulePaths);
   } catch (e) {
-    // console.error(e)
     return null;
   }
 });
@@ -37,6 +40,7 @@ module.exports = function babelPlugin(babel) {
   return {
     visitor: {
       Program(path, state) {
+        log('================ parsing file', state.file.opts.filename)
         // setup config
         moduleNameMapper = state.opts.jestConfig?.moduleNameMapper || {};
         modulePaths = state.opts.jestConfig?.modulePaths || [];
@@ -64,6 +68,8 @@ module.exports = function babelPlugin(babel) {
         }
       },
       ImportDeclaration(path, state) {
+        // try {
+
         if (state.skipParsing) {
           // Skip parsing of ImportDeclaration if flag is true
           return;
@@ -106,18 +112,23 @@ module.exports = function babelPlugin(babel) {
               // import { foo } from './foo.js'
               // then just replace the source
               if (path.node.specifiers.length === 1) {
-                path.insertBefore([
-                  babel.types.importDeclaration(
-                    [
-                      babel.types.importSpecifier(
-                        babel.types.identifier(specifier.local.name),
-                        babel.types.stringLiteral(specifierOrigin.name),
-                      ),
-                    ],
-                    babel.types.stringLiteral(specifierOrigin.source),
-                  ),
-                ]);
-                path.remove();
+                if (specifier.local.name === specifierOrigin.name) {
+                  log('replacing ', specifierOrigin.name, specifierOrigin.source)
+                  // just replace the import path;
+                  path.node.source = babel.types.stringLiteral(specifierOrigin.source)
+                  return;
+                }
+                const newImport = babel.types.importDeclaration(
+                  [
+                    babel.types.importSpecifier(
+                      babel.types.identifier(specifier.local.name),
+                      babel.types.identifier(specifierOrigin.name),
+                    ),
+                  ],
+                  babel.types.stringLiteral(specifierOrigin.source),
+                )
+                path.replaceWith(newImport);
+                path.stop();
                 return;
               }
               // If this is a multiple specifier, as
