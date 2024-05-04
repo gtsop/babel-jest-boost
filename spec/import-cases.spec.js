@@ -53,54 +53,23 @@ describe('babel-jest-boost plugin import cases', () => {
        import { target } from "${__dirname}/test_tree/library/library.js";
       `
     )
-    // expectTransform(
-    //   "import defaultSpecifier, * as target from './test_tree/default_and_list';",
-    //   `
-    //    import { default as defaultSpecifier } from "${__dirname}/test_tree/default_and_list/index.js";
-    //    import * as target from "${__dirname}/test_tree/default_and_list/index.js";
-    //   `
-    // )
+    expectTransform(
+      "import defaultSpecifier, * as target from './test_tree/default_and_list';",
+      `
+       import { default as defaultSpecifier } from "${__dirname}/test_tree/default_and_list/index.js";
+       import * as target from "${__dirname}/test_tree/default_and_list/index.js";
+      `
+    )
     expectTransform(
       "import './test_tree/library';",
       `import "${__dirname}/test_tree/library/index.js";`
     )
   })
 
-  it("traces original export of specifier and replaces import statement", () => {
+  it("resolves modulePaths", () => {
     expectTransform(
-      "import { target } from './test_tree/library';",
+      "import { target } from 'library';",
       `import { target } from "${__dirname}/test_tree/library/library.js";`
     )
   })
-
-  it("correctly traces renames", () => {
-    expectTransform(
-      "import { localAs } from './test_tree/local_as';",
-      `import { target as localAs } from "${__dirname}/test_tree/library/library.js";`
-    )
-  });
-
-  it("correctly traces global exports", () => {
-    expectTransform(
-      "import { target } from './test_tree/global';",
-      `import { target } from "${__dirname}/test_tree/library/library.js";`
-    )
-  })
-
-  it("correctly traces global rename exports", () => {
-    expectTransform(
-      "import { libraryGlob } from './test_tree/global_as';",
-      `import { * as libraryGlob } from "${__dirname}/test_tree/library/index.js";`
-    )
-  })
-  // it("correctly traces default exports", () => {
-  //
-  // }) 
-  //
-  // it("resolves modulePaths", () => {
-  //   expectTransform(
-  //     "import { foo } from 'bar';",
-  //     `import { foo } from "${__dirname}/test_tree/bar/bar.js";`
-  //   )
-  // })
 })

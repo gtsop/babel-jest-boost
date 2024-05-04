@@ -91,11 +91,16 @@ module.exports = function babelPlugin(babel) {
                   babel.types.stringLiteral(resolved),
                 ),
               );
-              path.remove();
+              if (path.node.specifiers.length === 1) {
+                path.remove();
+                return;
+              } else if (path.node.specifiers.length > 1) {
+                toRemove.push(index);
+                return;
+              }
             }
             return;
           }
-
 
           const importedFrom = bjbResolve(path.node.source.value, nodepath.dirname(state.file.opts.filename));
 
