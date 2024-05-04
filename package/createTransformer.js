@@ -1,3 +1,5 @@
-const babelJest = require('babel-jest').default;
+function createTransformer() {
+  return {}
+}
 
 module.exports = { createTransformer };

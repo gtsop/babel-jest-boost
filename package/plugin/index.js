@@ -1,7 +1,7 @@
 const nodepath = require('path');
 const { resolve } = require('../resolve');
 const { withCache } = require('../cache');
-const { babelParse, matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
+const { matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
 const { Tracer, } = require('./traverse');
 
 let modulePaths = null;
@@ -9,12 +9,10 @@ let moduleNameMapper = null;
 
 let importWhiteList = [];
 
-// eslint-disable-next-line
 const isPathWhitelisted = withCache(function actualIsPathWhitelisted(path) {
   return matchAnyRegex(importWhiteList, path);
 });
 
-// eslint-disable-next-line
 const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
   try {
     if (isPathWhitelisted(path)) {
@@ -22,6 +20,7 @@ const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
     }
     return resolve(path, basedir, moduleNameMapper, modulePaths);
   } catch (e) {
+    console.log('failed to resolve', e);
     return null;
   }
 });
@@ -116,7 +115,7 @@ module.exports = function babelPlugin(babel) {
                 importedFrom
               );
             } catch (e) {
-              console.log('failed to trace', path.node.source.value, importedFrom)
+              console.log('failed to trace', path.node.source.value, importedFrom, e)
               return
             }
 

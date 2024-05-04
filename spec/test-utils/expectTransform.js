@@ -8,7 +8,7 @@ function createTransform(options) {
         babelJestBoost,
         {
           ...options,
-          jestConfig: { modulePaths: ['<rootDir>/spec/test_tree']}
+          jestConfig: { modulePaths: ['<rootDir>/spec/test_tree'] }
         }
       ]
     ],
@@ -17,10 +17,6 @@ function createTransform(options) {
 
 function multilineTrim(string) {
   return string.split('\n').map(line => line.trim()).filter((line, index, arr) => !(index === 0 || index === arr.length - 1) || line.length).join('\n');
-}
-
-function expectTransform(input, expectedOutput, transform = defaultTransform) {
-  expect(transform(input)).toBe(expectedOutput);
 }
 
 function createExpectTransform(filename, options) {

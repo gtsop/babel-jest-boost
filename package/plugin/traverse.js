@@ -11,10 +11,6 @@ const parserConfig = {
   plugins: ['jsx', 'tsx', 'typescript', 'decorators-legacy'],
 };
 
-function babelParse(code) {
-  return babelParser.parse(code, parserConfig);
-}
-
 class Tracer {
 
   constructor(resolve) {

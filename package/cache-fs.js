@@ -79,7 +79,7 @@ function withCacheFS(func) {
       return map.get(cacheKey);
     } catch (e) {
       // some collision probably happened here, will proceed to retry
-      console.log('================ colision? syncSleeping');
+      console.log('================ colision? syncSleeping', e);
       syncSleep();
       return funcWithCacheFS(...params);
     }
