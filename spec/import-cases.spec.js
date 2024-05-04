@@ -65,7 +65,7 @@ describe("babel-jest-boost plugin import cases", () => {
     );
   });
 
-  it('resolves modulePaths', () => {
+  it("resolves modulePaths", () => {
     expectTransform(
       "import { target } from 'library';",
       `import { target } from "${__dirname}/test_tree/library/library.js";`,
