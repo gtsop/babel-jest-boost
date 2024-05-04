@@ -1,5 +1,4 @@
 const sresolve = require('resolve');
-const { cache } = require('./cache');
 
 const { replaceRootDirInPath, getModuleNameFromMap } = require('./jest-utils/moduleNameMapper');
 
@@ -17,8 +16,4 @@ function resolve(pathToResolve, basedir, moduleNameMapper = null, modulePaths = 
   });
 }
 
-function resolveWithCache(...params) {
-  return cache(resolve, ...params);
-}
-
-module.exports = { resolve: resolveWithCache };
+module.exports = { resolve };
