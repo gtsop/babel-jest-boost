@@ -1,0 +1,13 @@
+name: CI
+on: [push]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    stpes:
+      - uses: actions/checkout@v2
+      - name: install
+        run: npm ci
+      - name: lint
+        run: npm run format:check && npm run lint:check
+      - name: test
+        run: npm test
