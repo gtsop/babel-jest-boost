@@ -28,7 +28,7 @@ describe('babel-jest-boost plugin', () => {
   it("correctly traces global rename exports", () => {
     expectTransform(
       "import { libraryGlob } from './test_tree/global_as';",
-      `import { libraryGlob } from "${__dirname}/test_tree/global_as/index.js";`
+      `import { * as libraryGlob } from "${__dirname}/test_tree/library/index.js";`
     )
   })
   // it("correctly traces default exports", () => {

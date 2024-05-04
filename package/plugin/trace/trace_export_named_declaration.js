@@ -1,10 +1,6 @@
 const nodepath = require('path');
 
 function trace_export_named_declaration(state, specifierName, codeFilePath, resolve) {
-  if (specifierName === 'default') {
-    return {};
-  }
-
   return {
     ExportNamedDeclaration(path) {
       // single declaration export
@@ -24,8 +20,7 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
         }
       }
 
-      // export specifiers, being imported from somewhere else
-      if (path.node.specifiers) {
+      if (path.node.specifiers?.length) {
         path.node.specifiers.forEach((expSpecifier) => {
           if (specifierName === expSpecifier.exported.name) {
             // import { specifier } from './original';
@@ -50,8 +45,8 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
               } else if (expSpecifier.type === "ExportNamespaceSpecifier") {
                 // export * as specifier from './original';
                 state.match = {
-                  name: expSpecifier.exported.name,
-                  source: codeFilePath,
+                  name: "*",
+                  source,
                   file: codeFilePath
                 }
               } else {
@@ -64,18 +59,57 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
               }
             }
           }
+          if (specifierName === expSpecifier.exported.value) {
+            // export { one as 'specifier' };
+            state.match = {
+              name: specifierName,
+              source: codeFilePath,
+              file: codeFilePath
+            }
+          }
         });
       }
 
-      // export const specifier = () => {}
       if (path?.node?.declaration?.declarations) {
         path.node.declaration.declarations.forEach((decl) => {
           if (specifierName === decl.id.name) {
+            // export const specifier = () => {}
             state.match = {
               name: specifierName,
               source: codeFilePath,
               file: codeFilePath,
             };
+          }
+          if (decl.id.properties?.length) {
+            decl.id.properties.forEach((prop) => {
+              if (prop.value?.name === specifierName) {
+                // export const { specifier: rename } = someObject;
+                state.match = {
+                  name: specifierName,
+                  source: codeFilePath,
+                  file: codeFilePath
+                }
+              } else if (prop.key?.name === specifierName) {
+                // export const { specifier } = someObject;
+                state.match = {
+                  name: specifierName,
+                  source: codeFilePath,
+                  file: codeFilePath
+                }
+              }
+            })
+          }
+          if (decl.id.elements?.length) {
+            // export const [ specifier, specifier2 ] = somearray
+            decl.id.elements.forEach((element) => {
+              if (element.name === specifierName) {
+                state.match = {
+                  name: specifierName,
+                  source: codeFilePath,
+                  file: codeFilePath
+                }
+              }
+            })
           }
         });
       }
