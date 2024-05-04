@@ -63,7 +63,6 @@ module.exports = function babelPlugin(babel) {
         }
       },
       ImportDeclaration(path, state) {
-        // try {
 
         if (state.skipParsing) {
           // Skip parsing of ImportDeclaration if flag is true
@@ -96,11 +95,19 @@ module.exports = function babelPlugin(babel) {
             }
             return;
           }
-          if (!specifier?.imported?.name) return;
+
+
           const importedFrom = bjbResolve(path.node.source.value, nodepath.dirname(state.file.opts.filename));
 
           if (importedFrom) {
-            const specifierOrigin = traceSpecifierOrigin(specifier.imported.name, importedFrom);
+
+            const isDefaultImport = babel.types.isImportDefaultSpecifier(specifier);
+
+            const specifierOrigin = traceSpecifierOrigin(
+              isDefaultImport ? 'default' : specifier.imported.name,
+              importedFrom
+            );
+
             if (specifierOrigin) {
               // Transform the import statement
               // If this is a single specifier, as
@@ -134,7 +141,7 @@ module.exports = function babelPlugin(babel) {
                     [
                       babel.types.importSpecifier(
                         babel.types.identifier(specifier.local.name),
-                        babel.types.stringLiteral(specifierOrigin.name),
+                        babel.types.identifier(specifierOrigin.name),
                       ),
                     ],
                     babel.types.stringLiteral(specifierOrigin.source),

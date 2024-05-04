@@ -15,6 +15,10 @@ function createTransform(options) {
   })
 }
 
+function multilineTrim(string) {
+  return string.split('\n').map(line => line.trim()).filter((line, index, arr) => !(index === 0 || index === arr.length - 1) || line.length).join('\n');
+}
+
 function expectTransform(input, expectedOutput, transform = defaultTransform) {
   expect(transform(input)).toBe(expectedOutput);
 }
@@ -24,11 +28,11 @@ function createExpectTransform(filename, options) {
 
   function transform(source) {
     const output = transformer.process(source, filename, { config: {} });
-    return output.code.replace(/\/\/# sourceMappingURL.*/, "").trim();
+    return multilineTrim(output.code.replace(/\/\/# sourceMappingURL.*/, ""))
   }
 
   return function expectTransform(input, expectedOutput) {
-    expect(transform(input)).toBe(expectedOutput);
+    expect(transform(input)).toBe(multilineTrim(expectedOutput));
   }
 }
 
