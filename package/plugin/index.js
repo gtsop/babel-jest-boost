@@ -20,7 +20,7 @@ const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
     }
     return resolve(path, basedir, moduleNameMapper, modulePaths);
   } catch (e) {
-    console.log('failed to resolve', e);
+    console.log('failed to resolve', e.message);
     return null;
   }
 });
@@ -115,7 +115,7 @@ module.exports = function babelPlugin(babel) {
                 importedFrom
               );
             } catch (e) {
-              console.log('failed to trace', path.node.source.value, importedFrom, e)
+              console.log('failed to trace', path.node.source.value, importedFrom, e.message)
               return
             }
 
