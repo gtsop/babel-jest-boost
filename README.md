@@ -101,8 +101,7 @@ Using `{ importIgnorePatterns: ['./lib']}` will prevent the plugin from bypassin
 
 code.js -> imports ./lib/index.js -> imports libFunc.js
 
-This is intended to help you defer refactoring some barels or modules that are causing trouble or breaking your tests when you integrate this plugin. 
-
+This is intended to help you defer refactoring some barels or modules that are causing trouble or breaking your tests when you integrate this plugin.
 
 # Plugin directives
 
@@ -121,9 +120,9 @@ Any import statements within this particular file will not be re-written.
 - 0.1.11 Ensure all different import/export syntaxes are properly treated. ✅
 - 0.1.12 Performance increase, tracing prioritization and defensive try/catch ✅
 - 0.1.13 Pre-commit linst, format test and github action to test again.
-- 0.1.14 Expose ready-made transformer to relief the user from having to pass in the jestConfig object. 
+- 0.1.14 Expose ready-made transformer to relief the user from having to pass in the jestConfig object.
 - 0.1.16 Ensure all different `jest.mock` calls are properly treated.
 - 0.1.17 Expose debugging options to the user (like printing which imports are being rewritten, or the transpiled output of a particular file).
 - 0.1.17 Expose a jest reporter to print a high-level overview of what the plugin did within the run (and potientialy report barel file statistics)
 - 0.1.18 Performance testing: Fork some open-source codebases, integrate `babel-jest-boost` and test to measure the performance increase. Do this in the CI/CD pipeline
-- 0.1.19 Figure out automatic changelog, version increase, github release, npm publish actions 
+- 0.1.19 Figure out automatic changelog, version increase, github release, npm publish actions

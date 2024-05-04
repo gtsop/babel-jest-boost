@@ -1,5 +1,5 @@
 function createTransformer() {
-  return {}
+  return {};
 }
 
 module.exports = { createTransformer };

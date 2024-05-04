@@ -1,1 +1,1 @@
-export { target as localAs } from '../library';
+export { target as localAs } from "../library";

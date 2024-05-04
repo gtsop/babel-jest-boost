@@ -1,7 +1,7 @@
-const { cache } = require('./cache');
+const { cache } = require("./cache");
 
-describe('cache', () => {
-  it('caches function calls', () => {
+describe("cache", () => {
+  it("caches function calls", () => {
     const actuallyAdd = jest.fn((a, b) => a + b);
     const actuallyRemove = jest.fn((a, b) => a - b);
 

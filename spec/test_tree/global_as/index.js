@@ -1,1 +1,1 @@
-export * as libraryGlob from '../library';
+export * as libraryGlob from "../library";

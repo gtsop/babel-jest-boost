@@ -1,7 +1,7 @@
-const os = require('os');
-const path = require('path');
-const fs = require('fs');
-const md5 = require('md5');
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
+const md5 = require("md5");
 
 const caches = new Map();
 
@@ -13,9 +13,9 @@ function syncSleep(interval = 10) {
 }
 
 class CacheFS {
-  name = '';
+  name = "";
 
-  cacheDir = '';
+  cacheDir = "";
 
   constructor(name) {
     this.name = name;
@@ -35,7 +35,7 @@ class CacheFS {
   }
 
   get(key) {
-    return JSON.parse(fs.readFileSync(`${this.cacheDir}/${key}`, 'utf8'));
+    return JSON.parse(fs.readFileSync(`${this.cacheDir}/${key}`, "utf8"));
   }
 
   set(key, value) {
@@ -52,7 +52,7 @@ function getCache(name) {
 
 function cacheFS(func, ...params) {
   const map = getCache(func.name);
-  const cacheKey = md5(params.join('-'));
+  const cacheKey = md5(params.join("-"));
 
   if (map.has(cacheKey)) {
     return map.get(cacheKey);
@@ -67,7 +67,7 @@ function withCacheFS(func) {
   const map = getCache(func.name);
   return function funcWithCacheFS(...params) {
     try {
-      const cacheKey = md5(params.join('-'));
+      const cacheKey = md5(params.join("-"));
       // console.log('cachefs', cacheKey);
       if (map.has(cacheKey)) {
         return map.get(cacheKey);
@@ -79,7 +79,7 @@ function withCacheFS(func) {
       return map.get(cacheKey);
     } catch (e) {
       // some collision probably happened here, will proceed to retry
-      console.log('================ colision? syncSleeping', e);
+      console.log("================ colision? syncSleeping", e);
       syncSleep();
       return funcWithCacheFS(...params);
     }

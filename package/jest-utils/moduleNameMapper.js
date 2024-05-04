@@ -1,28 +1,38 @@
-const path = require('path');
-const { get: getRootDir } = require('app-root-dir');
+const path = require("path");
+const { get: getRootDir } = require("app-root-dir");
 
 const rootDir = getRootDir();
 
 function getMapModuleName(matches) {
   return matches
-    ? (moduleName) => moduleName.replaceAll(/\$(\d+)/g, (_, index) => matches[Number.parseInt(index, 10)] || '')
+    ? (moduleName) =>
+        moduleName.replaceAll(
+          /\$(\d+)/g,
+          (_, index) => matches[Number.parseInt(index, 10)] || "",
+        )
     : (moduleName) => moduleName;
 }
 
 function replaceRootDirInObject(config) {
   const newConfig = {};
   for (const configKey in config) {
-    newConfig[configKey] = configKey === 'rootDir' ? config[configKey] : replaceRootDirTags(rootDir, config[configKey]);
+    newConfig[configKey] =
+      configKey === "rootDir"
+        ? config[configKey]
+        : replaceRootDirTags(rootDir, config[configKey]);
   }
   return newConfig;
 }
 
 function replaceRootDirInPath(filePath) {
-  if (!filePath.startsWith('<rootDir>')) {
+  if (!filePath.startsWith("<rootDir>")) {
     return filePath;
   }
 
-  return path.resolve(rootDir, path.normalize(`./${filePath.slice('<rootDir>'.length)}`));
+  return path.resolve(
+    rootDir,
+    path.normalize(`./${filePath.slice("<rootDir>".length)}`),
+  );
 }
 
 function replaceRootDirTags(config) {
@@ -30,7 +40,7 @@ function replaceRootDirTags(config) {
     return config;
   }
   switch (typeof config) {
-    case 'object':
+    case "object":
       if (Array.isArray(config)) {
         /// can be string[] or {}[]
         return config.map((item) => replaceRootDirTags(item));
@@ -40,7 +50,7 @@ function replaceRootDirTags(config) {
       }
 
       return replaceRootDirInObject(config);
-    case 'string':
+    case "string":
       return replaceRootDirInPath(config);
     default:
       break;
@@ -65,7 +75,9 @@ function getModuleNameFromMap(pathToResolve, moduleNameMapper) {
       const matches = pathToResolve.match(regex);
       const mapModuleName = getMapModuleName(matches);
 
-      const possibleModuleNames = Array.isArray(mappedModuleName) ? mappedModuleName : [mappedModuleName];
+      const possibleModuleNames = Array.isArray(mappedModuleName)
+        ? mappedModuleName
+        : [mappedModuleName];
       for (const possibleModuleName of possibleModuleNames) {
         const updatedName = mapModuleName(possibleModuleName);
         return updatedName;

@@ -1,8 +1,8 @@
-const nodepath = require('path');
-const { resolve } = require('../resolve');
-const { withCache } = require('../cache');
-const { matchAnyRegex, removeItemsByIndexesInPlace } = require('./utils');
-const { Tracer, } = require('./traverse');
+const nodepath = require("path");
+const { resolve } = require("../resolve");
+const { withCache } = require("../cache");
+const { matchAnyRegex, removeItemsByIndexesInPlace } = require("./utils");
+const { Tracer } = require("./traverse");
 
 let modulePaths = null;
 let moduleNameMapper = null;
@@ -20,16 +20,18 @@ const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
     }
     return resolve(path, basedir, moduleNameMapper, modulePaths);
   } catch (e) {
-    console.log('failed to resolve', e.message);
+    console.log("failed to resolve", e.message);
     return null;
   }
 });
 
 const tracer = new Tracer(bjbResolve);
 
-const traceSpecifierOrigin = withCache(function actualTraceSpecifierOrigin(specifierName, codeFilePath) {
-  return tracer.traceOriginalExport(specifierName, codeFilePath);
-});
+const traceSpecifierOrigin = withCache(
+  function actualTraceSpecifierOrigin(specifierName, codeFilePath) {
+    return tracer.traceOriginalExport(specifierName, codeFilePath);
+  },
+);
 
 module.exports = function babelPlugin(babel) {
   return {
@@ -42,7 +44,7 @@ module.exports = function babelPlugin(babel) {
 
         const comments = path.parent.comments || [];
         const skipProgramComment = comments.find((comment) =>
-          comment.value.trim().includes('@babel-jest-boost no-boost'),
+          comment.value.trim().includes("@babel-jest-boost no-boost"),
         );
 
         state.skipParsing = Boolean(skipProgramComment);
@@ -52,9 +54,12 @@ module.exports = function babelPlugin(babel) {
           // Skip parsing of ImportDeclaration if flag is true
           return;
         }
-        if (path.node.callee?.property?.name === 'mock') {
+        if (path.node.callee?.property?.name === "mock") {
           const mockedPath = path.node.arguments[0].value;
-          const resolved = bjbResolve(mockedPath, nodepath.dirname(state.file.opts.filename));
+          const resolved = bjbResolve(
+            mockedPath,
+            nodepath.dirname(state.file.opts.filename),
+          );
           if (isPathWhitelisted(resolved)) {
             return;
           }
@@ -62,7 +67,6 @@ module.exports = function babelPlugin(babel) {
         }
       },
       ImportDeclaration(path, state) {
-
         if (state.skipParsing) {
           // Skip parsing of ImportDeclaration if flag is true
           return;
@@ -73,16 +77,27 @@ module.exports = function babelPlugin(babel) {
         }
         // import 'some-raw-file.css'
         if (path.node.specifiers.length === 0) {
-          const resolved = bjbResolve(path.node.source.value, nodepath.dirname(state.file.opts.filename));
+          const resolved = bjbResolve(
+            path.node.source.value,
+            nodepath.dirname(state.file.opts.filename),
+          );
           if (resolved !== path.node.source.value) {
-            path.replaceWith(babel.types.importDeclaration([], babel.types.stringLiteral(resolved)));
+            path.replaceWith(
+              babel.types.importDeclaration(
+                [],
+                babel.types.stringLiteral(resolved),
+              ),
+            );
           }
           return;
         }
         path?.node?.specifiers?.forEach((specifier, index) => {
           // import * as Something from './somewhere';
           if (babel.types.isImportNamespaceSpecifier(specifier)) {
-            const resolved = bjbResolve(path.node.source.value, nodepath.dirname(state.file.opts.filename));
+            const resolved = bjbResolve(
+              path.node.source.value,
+              nodepath.dirname(state.file.opts.filename),
+            );
             if (resolved !== path.node.source.value) {
               path.insertBefore(
                 babel.types.importDeclaration(
@@ -101,22 +116,30 @@ module.exports = function babelPlugin(babel) {
             return;
           }
 
-          const importedFrom = bjbResolve(path.node.source.value, nodepath.dirname(state.file.opts.filename));
+          const importedFrom = bjbResolve(
+            path.node.source.value,
+            nodepath.dirname(state.file.opts.filename),
+          );
 
           if (importedFrom) {
-
-            const isDefaultImport = babel.types.isImportDefaultSpecifier(specifier);
+            const isDefaultImport =
+              babel.types.isImportDefaultSpecifier(specifier);
 
             let specifierOrigin = null;
 
             try {
               specifierOrigin = traceSpecifierOrigin(
-                isDefaultImport ? 'default' : specifier.imported.name,
-                importedFrom
+                isDefaultImport ? "default" : specifier.imported.name,
+                importedFrom,
               );
             } catch (e) {
-              console.log('failed to trace', path.node.source.value, importedFrom, e.message)
-              return
+              console.log(
+                "failed to trace",
+                path.node.source.value,
+                importedFrom,
+                e.message,
+              );
+              return;
             }
 
             if (specifierOrigin) {
@@ -127,7 +150,9 @@ module.exports = function babelPlugin(babel) {
               if (path.node.specifiers.length === 1) {
                 if (specifier.local.name === specifierOrigin.name) {
                   // just replace the import path;
-                  path.node.source = babel.types.stringLiteral(specifierOrigin.source)
+                  path.node.source = babel.types.stringLiteral(
+                    specifierOrigin.source,
+                  );
                   return;
                 }
                 const newImport = babel.types.importDeclaration(
@@ -138,7 +163,7 @@ module.exports = function babelPlugin(babel) {
                     ),
                   ],
                   babel.types.stringLiteral(specifierOrigin.source),
-                )
+                );
                 path.replaceWith(newImport);
                 path.skip();
                 return;
@@ -163,7 +188,10 @@ module.exports = function babelPlugin(babel) {
             }
           }
         });
-        if (toRemove.length > 1 && toRemove.length === path.node.specifiers.length) {
+        if (
+          toRemove.length > 1 &&
+          toRemove.length === path.node.specifiers.length
+        ) {
           path.remove();
         } else if (toRemove.length > 0) {
           removeItemsByIndexesInPlace(toRemove, path.node.specifiers);

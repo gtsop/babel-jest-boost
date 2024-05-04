@@ -1,7 +1,12 @@
-const nodepath = require('path');
+const nodepath = require("path");
 
-function trace_export_all_declaration(state, specifierName, codeFilePath, resolve) {
-  if (specifierName === 'default') return {};
+function trace_export_all_declaration(
+  state,
+  specifierName,
+  codeFilePath,
+  resolve,
+) {
+  if (specifierName === "default") return {};
   return {
     ExportAllDeclaration(path) {
       // export * from './original.js'
@@ -9,9 +14,9 @@ function trace_export_all_declaration(state, specifierName, codeFilePath, resolv
         name: specifierName,
         source: resolve(path.node.source.value, nodepath.dirname(codeFilePath)),
         file: codeFilePath,
-      })
-    }
-  }
+      });
+    },
+  };
 }
 
 module.exports = { trace_export_all_declaration };

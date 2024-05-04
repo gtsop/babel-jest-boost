@@ -1,1 +1,1 @@
-export { target as 'some string' } from '../library';
+export { target as "some string" } from "../library";

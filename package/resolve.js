@@ -1,8 +1,16 @@
-const sresolve = require('resolve');
+const sresolve = require("resolve");
 
-const { replaceRootDirInPath, getModuleNameFromMap } = require('./jest-utils/moduleNameMapper');
+const {
+  replaceRootDirInPath,
+  getModuleNameFromMap,
+} = require("./jest-utils/moduleNameMapper");
 
-function resolve(pathToResolve, basedir, moduleNameMapper = null, modulePaths = []) {
+function resolve(
+  pathToResolve,
+  basedir,
+  moduleNameMapper = null,
+  modulePaths = [],
+) {
   let mappedPath = pathToResolve;
 
   if (moduleNameMapper) {
@@ -12,7 +20,7 @@ function resolve(pathToResolve, basedir, moduleNameMapper = null, modulePaths = 
   return sresolve.sync(mappedPath, {
     basedir,
     paths: modulePaths.map(replaceRootDirInPath),
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    extensions: [".js", ".jsx", ".ts", ".tsx"],
   });
 }
 

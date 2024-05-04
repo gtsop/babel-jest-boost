@@ -1,4 +1,4 @@
-const babelParser = require('@babel/parser');
+const babelParser = require("@babel/parser");
 
 function matchAnyRegex(regexArray, haystack) {
   for (let i = 0; i < regexArray.length; i++) {
@@ -16,8 +16,8 @@ function removeItemsByIndexesInPlace(indexes, array) {
 }
 
 const parserConfig = {
-  sourceType: 'module',
-  plugins: ['jsx', 'tsx', 'typescript', 'decorators-legacy'],
+  sourceType: "module",
+  plugins: ["jsx", "tsx", "typescript", "decorators-legacy"],
 };
 
 function babelParse(code) {
@@ -27,5 +27,5 @@ function babelParse(code) {
 module.exports = {
   matchAnyRegex,
   removeItemsByIndexesInPlace,
-  babelParse
-}
+  babelParse,
+};

@@ -1,6 +1,11 @@
-const nodepath = require('path');
+const nodepath = require("path");
 
-function trace_export_named_declaration(state, specifierName, codeFilePath, resolve) {
+function trace_export_named_declaration(
+  state,
+  specifierName,
+  codeFilePath,
+  resolve,
+) {
   return {
     ExportNamedDeclaration(path) {
       // single declaration export
@@ -15,7 +20,7 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
             file: codeFilePath,
           };
 
-          state.match = match
+          state.match = match;
           // return;
         }
       }
@@ -33,22 +38,25 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
                 file: codeFilePath,
               };
             } else {
-              const source = resolve(path.node.source.value, nodepath.dirname(codeFilePath));
+              const source = resolve(
+                path.node.source.value,
+                nodepath.dirname(codeFilePath),
+              );
 
-              if (expSpecifier.local?.name === 'default') {
+              if (expSpecifier.local?.name === "default") {
                 // export { default as specifier } from './original';
                 state.traces.unshift({
-                  name: 'default',
+                  name: "default",
                   source,
-                  file: codeFilePath
-                })
+                  file: codeFilePath,
+                });
               } else if (expSpecifier.type === "ExportNamespaceSpecifier") {
                 // export * as specifier from './original';
                 state.match = {
                   name: "*",
                   source,
-                  file: codeFilePath
-                }
+                  file: codeFilePath,
+                };
               } else {
                 // export { specifier } from './original';
                 state.traces.unshift({
@@ -64,8 +72,8 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
             state.match = {
               name: specifierName,
               source: codeFilePath,
-              file: codeFilePath
-            }
+              file: codeFilePath,
+            };
           }
         });
       }
@@ -87,17 +95,17 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
                 state.match = {
                   name: specifierName,
                   source: codeFilePath,
-                  file: codeFilePath
-                }
+                  file: codeFilePath,
+                };
               } else if (prop.key?.name === specifierName) {
                 // export const { specifier } = someObject;
                 state.match = {
                   name: specifierName,
                   source: codeFilePath,
-                  file: codeFilePath
-                }
+                  file: codeFilePath,
+                };
               }
-            })
+            });
           }
           if (decl.id.elements?.length) {
             // export const [ specifier, specifier2 ] = somearray
@@ -106,15 +114,15 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
                 state.match = {
                   name: specifierName,
                   source: codeFilePath,
-                  file: codeFilePath
-                }
+                  file: codeFilePath,
+                };
               }
-            })
+            });
           }
         });
       }
     },
-  }
+  };
 }
 
 module.exports = { trace_export_named_declaration };

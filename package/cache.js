@@ -1,5 +1,5 @@
 const caches = new Map();
-const md5 = require('md5');
+const md5 = require("md5");
 
 function getCache(name) {
   if (caches.has(name)) return caches.get(name);
@@ -9,7 +9,7 @@ function getCache(name) {
 
 function cache(func, ...params) {
   const map = getCache(func.name);
-  const cacheKey = params.join('-');
+  const cacheKey = params.join("-");
 
   if (map.has(cacheKey)) {
     return map.get(cacheKey);
@@ -24,7 +24,7 @@ function withCache(func) {
   const map = getCache(func.name);
   return function funcWithCache(...params) {
     // const cacheKey = params.join('-');
-    const cacheKey = md5(params.join('-'));
+    const cacheKey = md5(params.join("-"));
     if (map.has(cacheKey)) {
       return map.get(cacheKey);
     }
