@@ -118,7 +118,7 @@ Any import statements within this particular file will not be re-written.
 
 # ROADMAP
 
-- 0.1.11 Ensure all different import/export syntaxes are properly treated.
+- 0.1.11 Ensure all different import/export syntaxes are properly treated. ✅
 - 0.1.12 Pre-commit linst, format test and github action to test again.
 - 0.1.13 Expose ready-made transformer to relief the user from having to pass in the jestConfig object. 
 - 0.1.14 Ensure all different `jest.mock` calls are properly treated.
