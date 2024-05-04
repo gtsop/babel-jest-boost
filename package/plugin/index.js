@@ -108,10 +108,17 @@ module.exports = function babelPlugin(babel) {
 
             const isDefaultImport = babel.types.isImportDefaultSpecifier(specifier);
 
-            const specifierOrigin = traceSpecifierOrigin(
-              isDefaultImport ? 'default' : specifier.imported.name,
-              importedFrom
-            );
+            let specifierOrigin = null;
+
+            try {
+              specifierOrigin = traceSpecifierOrigin(
+                isDefaultImport ? 'default' : specifier.imported.name,
+                importedFrom
+              );
+            } catch (e) {
+              console.log('failed to trace', path.node.source.value, importedFrom)
+              return
+            }
 
             if (specifierOrigin) {
               // Transform the import statement

@@ -37,7 +37,7 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
 
               if (expSpecifier.local?.name === 'default') {
                 // export { default as specifier } from './original';
-                state.traces.push({
+                state.traces.unshift({
                   name: 'default',
                   source,
                   file: codeFilePath
@@ -51,7 +51,7 @@ function trace_export_named_declaration(state, specifierName, codeFilePath, reso
                 }
               } else {
                 // export { specifier } from './original';
-                state.traces.push({
+                state.traces.unshift({
                   name: expSpecifier.local.name,
                   source,
                   file: codeFilePath,
