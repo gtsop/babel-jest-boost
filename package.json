@@ -3,11 +3,13 @@
   "version": "0.1.12",
   "description": "Babel plugin to boost jest performance by skipping intermediate imports",
   "scripts": {
+    "format:check": "prettier . --check",
+    "format:fix": "prettier . --write",
+    "lint:check": "eslint",
+    "lint:fix": "eslint --fix",
+    "prepare": "husky",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "format": "prettier . --write",
-    "lint": "eslint",
-    "prepare": "husky"
+    "test:watch": "jest --watch"
   },
   "exports": {
     ".": "./package/index.js",
