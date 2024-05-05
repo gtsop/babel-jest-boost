@@ -38,6 +38,8 @@
   },
   "peerDepedenceis": {
     "babel-jest": "*",
+    "jest": "*",
+    "jest-config": "*",
     "resolve": "*"
   },
   "repository": {
