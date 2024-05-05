@@ -10,7 +10,6 @@ readConfig(process.argv, getRootDir()).then(({ projectConfig }) => {
     newModuleNameMapper[regex] = item;
   });
   jestConfig.moduleNameMapper = newModuleNameMapper;
-  console.log("======= resolved config");
 });
 
 module.exports = { jestConfig };

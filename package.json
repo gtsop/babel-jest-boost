@@ -15,7 +15,8 @@
   "exports": {
     ".": "./package/index.js",
     "./plugin": "./package/plugin/index.js",
-    "./config": "./package/config/index.js"
+    "./config": "./package/config/index.js",
+    "./transformer": "./package/transformer/index.js"
   },
   "author": "George Tsopanoglou",
   "license": "AGPL-3.0-or-later",
