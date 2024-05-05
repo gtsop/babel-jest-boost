@@ -6,7 +6,7 @@ Improve the performance of your jest tests via bypassing re-exports and barel fi
 
 This plugin modifies your code test-time (when babel-jest transpiles your code to be ran in jest). It will figure out the original exporter of every specifier imported in the files and modify these imports to directly require the specifiers from the original exporter. For instance, assume this file structure:
 
-```
+```bash
 .
 ├── lib
 │   ├── lib.js     // export function libFunc () {}
@@ -16,40 +16,52 @@ This plugin modifies your code test-time (when babel-jest transpiles your code t
 
 When ran in jest, this plugin will convert the import statement in `code.js` to:
 
-```
+```javascript
 import { libFunc } from '/home/myuser/myproject/lib/lib.js';
 ```
 
 It will also replace `jest.mock()` function calls in exaclty the same manner.
 
-# Installation
+# Integration
 
-Add the plugin to your project
+## 1. Install the package
 
-```
+```bash
 npm install -D @gtsopanoglou/babel-jest-boost
 ```
 
-# How to use
+## 2. Update your babel-jest transformer
 
-## 1. Use the plugin in your transformer
+### Option 1: `babel-jest-boost/transformer`
 
-Modify, your babel-jest transformer to use the plugin. It needs access to jest's config, as such a helper object is being exported to help you do it:
+Use the pre-made transformer exported from `@gtsopanoglou/babel-jest-boost/transformer`:
 
-```
-const { jestConfig } = require("@gtsopanoglou/babel-jest-boost/config");
+```javascript
+- const babelJest = require("babel-jest").default;
++ const babelJestBoost = require("@gtsopanoglou/babel-jest-boost/transformer");
 
-...
-
-plugins: [
-    [
-        require.resolve('@gtsopanoglou/babel-jest-boost'),
-        { jestConfig, importIgnorePatterns: [...] }
-    ]
-]
+- module.exports = babelJest.createTransformer({ /* babel config */ });
++ module.exports = babelJestBoost.createTransformer({ /* babel config */ }, { /* babel-jest-boost config */ });
 ```
 
-## 2. Test your codebase and block/skip problematic files
+### Option 2: `babel-jest-boost/plugin`
+
+Alternatively, you can make use of `babel-jest-boost/plugin` instead. It needs access to your jest config (`moduleNameMapper` and `modulePaths` in particular). To help you do that we export a `jestConfig` object:
+
+```javascript
++ const { jestConfig } = require("@gtsopanoglou/babel-jest-boost/config");
+
+ ...
+ 
+ plugins: [
+     [
++       require.resolve('@gtsopanoglou/babel-jest-boost/plugin'),
++       { jestConfig, importIgnorePatterns: [...] }
+     ]
+ ]
+```
+
+## 3. Prevent `babel-jest-boost` from re-writing imports that break tests
 
 In order to integrate this plugin you're gonna need to run your test suite and fix potential breakages. Since `babel-jest-boost` modifies the transpiled code, you'll need to clear jest's cache before each run during this step to ensure you see non-cached results:
 
@@ -57,7 +69,7 @@ In order to integrate this plugin you're gonna need to run your test suite and f
 jest --clearCache && jest # or whatever you testing command is
 ```
 
-It is very likely that some tests of yours will now break. This will be caused by some implicit dependency in your code that you're probably not aware of, but also not willing to fix right now. In order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and `no-boost` directive.
+It is likely that some tests of yours will now break. The breakage may be caused either by some implicit dependency in your code that you're probably not aware of, or some case not being properly supported by `babel-jest-boost`. Either way, you are not goint to fix those right now. In order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and the `no-boost` directive.
 
 1. Use `importIgnorePatterns` to batch-block specific barels or paths are commonly imported in your codebase and are causing your tests to break (since you added this plugin)
 
@@ -65,9 +77,9 @@ It is very likely that some tests of yours will now break. This will be caused b
 
 3. Re-iterate until your tests are green again.
 
-## 3. (optional) Refactor
+## 4. Done
 
-Now that you've blocked some files from this plugin and your tests are green again, you have some candidates for refactoring. These files most likely have huge import lists, much mocking or implicit depdencies you did not realize. Performance aside, you will benefit from figuring out exactly what causes the problem and refactor the code to fix the issue
+Once your tests are green again you are done. You can now keep running your tests are usual without having to clear your cache.
 
 # Plugin options
 
