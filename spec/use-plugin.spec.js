@@ -1,6 +1,6 @@
 const babelJest = require("babel-jest").default;
 
-const babelJestBoost = require.resolve("../package/plugin/index.js");
+const babelJestBoost = require.resolve("../package/plugin");
 
 describe("babel-jest-boost/plugin", () => {
   test("babel-jest transformer runs", () => {

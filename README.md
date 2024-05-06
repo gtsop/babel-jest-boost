@@ -32,21 +32,9 @@ npm install -D @gtsopanoglou/babel-jest-boost
 
 ## 2. Update your babel-jest transformer
 
-### Option 1: `babel-jest-boost/transformer`
+### Option 1: `babel-jest-boost/plugin`
 
-Use the pre-made transformer exported from `@gtsopanoglou/babel-jest-boost/transformer`:
-
-```javascript
-- const babelJest = require("babel-jest").default;
-+ const babelJestBoost = require("@gtsopanoglou/babel-jest-boost/transformer");
-
-- module.exports = babelJest.createTransformer({ /* babel config */ });
-+ module.exports = babelJestBoost.createTransformer({ /* babel config */ }, { /* babel-jest-boost config */ });
-```
-
-### Option 2: `babel-jest-boost/plugin`
-
-Alternatively, you can make use of `babel-jest-boost/plugin` instead. It needs access to your jest config (`moduleNameMapper` and `modulePaths` in particular). To help you do that we export a `jestConfig` object:
+You may use `babel-jest-boost` as a regular babel plugin. It needs access to your jest config (`moduleNameMapper` and `modulePaths` in particular). To help you do that we export a `jestConfig` object:
 
 ```javascript
 + const { jestConfig } = require("@gtsopanoglou/babel-jest-boost/config");
@@ -56,9 +44,21 @@ Alternatively, you can make use of `babel-jest-boost/plugin` instead. It needs a
  plugins: [
      [
 +       require.resolve('@gtsopanoglou/babel-jest-boost/plugin'),
-+       { jestConfig, importIgnorePatterns: [...] }
++       { jestConfig, /* babel-jest-boost options */ }
      ]
  ]
+```
+
+### Option 2 (experimental): `babel-jest-boost/transformer`
+
+This option **is not recommended yet** because it hasn't been tested thoroughly. Use can the pre-made transformer exported from `@gtsopanoglou/babel-jest-boost/transformer` which takes care of passing the `jestConfig` object for you:
+
+```javascript
+- const babelJest = require("babel-jest").default;
++ const babelJestBoost = require("@gtsopanoglou/babel-jest-boost/transformer");
+
+- module.exports = babelJest.createTransformer({ /* babel config */ });
++ module.exports = babelJestBoost.createTransformer({ /* babel config */ }, { /* babel-jest-boost options */ });
 ```
 
 ## 3. Prevent `babel-jest-boost` from re-writing imports that break tests

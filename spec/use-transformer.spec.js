@@ -1,4 +1,4 @@
-const babelJestBoostTransformer = require("../package/transformer/index.js");
+const babelJestBoostTransformer = require("../package/transformer");
 
 describe("babel-jest-boost/transformer", () => {
   test("babel-jest-boost transformer runs with plugin within", () => {
