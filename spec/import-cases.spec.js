@@ -31,14 +31,14 @@ describe("babel-jest-boost plugin import cases", () => {
       "import { one, two, target } from './test_tree/library';",
       `
        import { target } from "${__dirname}/test_tree/library/library.js";
-       import { one, two } from './test_tree/library';
+       import { one, two } from "${__dirname}/test_tree/library/index.js";
       `,
     );
     expectTransform(
       "import { one, two, target as three } from './test_tree/library';",
       `
        import { target as three } from "${__dirname}/test_tree/library/library.js";
-       import { one, two } from './test_tree/library';
+       import { one, two } from "${__dirname}/test_tree/library/index.js";
       `,
     );
     expectTransform(

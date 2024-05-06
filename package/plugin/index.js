@@ -185,6 +185,8 @@ module.exports = function babelPlugin(babel) {
                 ]);
                 toRemove.push(index);
               }
+            } else {
+              path.node.source = babel.types.stringLiteral(importedFrom);
             }
           }
         });
