@@ -3,6 +3,9 @@ const { resolve } = require("../resolve");
 const { withCache } = require("../cache");
 const { matchAnyRegex, removeItemsByIndexesInPlace } = require("./utils");
 const { Tracer } = require("./traverse");
+const {
+  extract_mocked_specifier,
+} = require("./codemods/jest-mock/extract_mocked_specifier");
 
 let modulePaths = null;
 let moduleNameMapper = null;
@@ -55,15 +58,47 @@ module.exports = function babelPlugin(babel) {
           return;
         }
         if (path.node.callee?.property?.name === "mock") {
-          const mockedPath = path.node.arguments[0].value;
           const resolved = bjbResolve(
-            mockedPath,
+            path.node.arguments[0].value,
             nodepath.dirname(state.file.opts.filename),
           );
           if (isPathWhitelisted(resolved)) {
             return;
           }
+
           path.node.arguments[0].value = resolved;
+
+          const importedFrom = resolved;
+
+          if (path.node.arguments.length > 1) {
+            // jest.mock('./origin.js', () => ({ target: value }))
+            // Figure out the mocked specifier, trace it and re-write the mock call;
+            try {
+              path.node.arguments?.[1]?.body?.properties?.forEach((objProp) => {
+                const mockedIdentifier = objProp?.key?.name;
+
+                const specifierOrigin = traceSpecifierOrigin(
+                  mockedIdentifier,
+                  importedFrom,
+                );
+
+                if (!specifierOrigin) {
+                  return;
+                }
+
+                if (importedFrom === specifierOrigin.source) {
+                  // specifier is imported from the already resolved place, skip
+                  return;
+                }
+
+                extract_mocked_specifier(path, mockedIdentifier, (node) => {
+                  node.expression.arguments[0].value = specifierOrigin.source;
+                });
+              });
+            } catch (e) {
+              console.log("failed to parse mock statement: ", e);
+            }
+          }
         }
       },
       ImportDeclaration(path, state) {

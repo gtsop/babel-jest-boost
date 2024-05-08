@@ -26,6 +26,28 @@ function multilineTrim(string) {
     .join("\n");
 }
 
+function multilineRemove(mainString, stringToRemove) {
+  return mainString.replace(
+    new RegExp(stringToRemove.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
+    "",
+  );
+}
+
+function removeJestBlob(input) {
+  const jestBlob =
+    "\n" +
+    multilineTrim(`
+    function _getJestObj() {
+      const {
+      jest
+      } = require("@jest/globals");
+      _getJestObj = () => jest;
+      return jest;
+    }
+  `);
+
+  return multilineRemove(input, jestBlob);
+}
 function createExpectTransform(filename, options) {
   const transformer = createTransform(options);
 
@@ -39,4 +61,24 @@ function createExpectTransform(filename, options) {
   };
 }
 
-module.exports = { createExpectTransform };
+function createExpectJestTransform(filename, options) {
+  const transformer = createTransform(options);
+
+  function transform(source) {
+    const output = transformer.process(source, filename, { config: {} });
+    return multilineTrim(output.code.replace(/\/\/# sourceMappingURL.*/, ""));
+  }
+
+  return function expectJestTransform(input, expectedOutput) {
+    expectedOutput = multilineTrim(expectedOutput);
+    const output = removeJestBlob(transform(input));
+
+    expect(output).toBe(multilineTrim(expectedOutput));
+  };
+}
+
+module.exports = {
+  createExpectTransform,
+  createExpectJestTransform,
+  multilineTrim,
+};

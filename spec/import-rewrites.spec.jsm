@@ -8,7 +8,7 @@ const { createExpectTransform } = require("./test-utils/expectTransform.js");
 
 const expectTransform = createExpectTransform(__filename);
 
-describe("babel-jest-boost plugin import cases", () => {
+describe("babel-jest-boost plugin import rewrites", () => {
   it("correctly traces specifiers within all import syntaxes", () => {
     expectTransform(
       "import target from './test_tree/default';",
