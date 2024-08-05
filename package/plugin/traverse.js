@@ -16,8 +16,9 @@ const parserConfig = {
 };
 
 class Tracer {
-  constructor(resolve) {
+  constructor(resolve, shouldTrace = () => true) {
     this.resolve = resolve;
+    this.shouldTrace = shouldTrace;
   }
 
   codeFileToAST(codeFilePath) {
@@ -32,7 +33,11 @@ class Tracer {
     return babelParser.parse(code, parserConfig);
   }
 
-  traceOriginalExport(specifierName, codeFilePath) {
+  traceOriginalExport(specifierName, codeFilePath, isOriginal = true) {
+    if (!this.shouldTrace(codeFilePath)) {
+      return false
+    };
+
     const ast = this.codeFileToAST(codeFilePath);
 
     if (!ast) {
@@ -63,15 +68,16 @@ class Tracer {
     if (state.match) {
       return state.match;
     } else if (state.traces.length) {
-      let tracedMatch = null;
+      let tracedMatch = state.match;
       state.traces.some((trace) => {
-        const result = this.traceOriginalExport(trace.name, trace.source);
+        const result = this.traceOriginalExport(trace.name, trace.source, isOriginal = false);
         if (result?.source) {
           tracedMatch = result;
           return true;
         }
         return false;
       });
+
       return tracedMatch;
     } else {
       return false;
