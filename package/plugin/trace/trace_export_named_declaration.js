@@ -53,7 +53,7 @@ function trace_export_named_declaration(
               } else if (expSpecifier.type === "ExportNamespaceSpecifier") {
                 // export * as specifier from './original';
                 state.match = {
-                  name: "*",
+                  name: '*',
                   source,
                   file: codeFilePath,
                 };

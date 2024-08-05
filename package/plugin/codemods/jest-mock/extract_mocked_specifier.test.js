@@ -28,7 +28,7 @@ function expectCodemod(code, codemod, expectedOutput) {
   });
 
   const output = multilineTrim(babelGenerate(ast).code);
-
+  console.log(output);
   expect(output).toBe(multilineTrim(expectedOutput));
 }
 
@@ -40,7 +40,7 @@ describe("codemods/jest-mock/extract_mocked_specifier", () => {
         a: 'a'
       }));
       `,
-      (path) => extract_mocked_specifier(path, "a"),
+      (path) => extract_mocked_specifier(path, "a", { name: "a" }),
       `
       jest.mock('./origin.js', () => ({
         a: 'a'
@@ -57,7 +57,7 @@ describe("codemods/jest-mock/extract_mocked_specifier", () => {
         b: 'b'
       }));
       `,
-      (path) => extract_mocked_specifier(path, "b"),
+      (path) => extract_mocked_specifier(path, "b", { name: "b" }),
       `
       jest.mock('./origin.js', () => ({
         b: 'b'
@@ -79,8 +79,8 @@ describe("codemods/jest-mock/extract_mocked_specifier", () => {
       }));
       `,
       (path) => {
-        extract_mocked_specifier(path, "b");
-        extract_mocked_specifier(path, "c");
+        extract_mocked_specifier(path, "b", { name: "b" });
+        extract_mocked_specifier(path, "c", { name: "c" });
       },
       `
       jest.mock('./origin.js', () => ({

@@ -1,26 +1,73 @@
 const babelTypes = require("@babel/types");
 
-function extract_mocked_specifier(path, specifier, callback) {
-  // console.log(path.parent)
-  const expression = path.parent;
-
-  if (path.node.arguments[1].body.properties.length === 1) {
-    callback?.(path.parent);
-    return;
-  }
-
-  const clone = babelTypes.cloneNode(expression);
-  clone.expression.arguments[1].body.properties =
-    clone.expression.arguments[1].body.properties.filter((prop) => {
-      return prop.key.name === specifier;
-    });
-  path.node.arguments[1].body.properties =
-    path.node.arguments[1].body.properties.filter((prop) => {
-      return prop.key.name !== specifier;
-    });
-  callback?.(clone);
-
-  path.insertBefore(clone);
+function getProperties(node) {
+  const props = node.arguments?.[1]?.body?.properties;
+  if (props) return props;
+  return node.arguments?.[1]?.body.body?.[0]?.argument?.properties;
 }
 
-module.exports = { extract_mocked_specifier };
+function setProperties(node, props) {
+  const isDirectReturn = node.arguments?.[1]?.body?.properties != null;
+
+  if (isDirectReturn) {
+    node.arguments[1].body.properties = props;
+  } else {
+    node.arguments[1].body.body[0].argument.properties = props;
+  }
+}
+
+function setDefaultReturn(node, returnNode) {
+  const isDirectReturn = node.arguments?.[1]?.body?.properties != null;
+
+  if (isDirectReturn) node.arguments[1].body = returnNode;
+  else node.arguments[1].body.body[0].argument = returnNode;
+}
+
+function extract_mocked_specifier(path, specifier, specifierOrigin, callback) {
+  const expression = path.parent;
+
+  const clone = babelTypes.cloneNode(expression);
+
+  let defaultOverride;
+
+  setProperties(
+    clone.expression,
+    getProperties(clone.expression).reduce((acc, prop) => {
+      if (!prop.key) return acc;
+      if (prop.key.name === specifier) {
+        if (specifierOrigin.name === "*") {
+          return [...acc, babelTypes.spreadElement(prop.value)];
+        }
+        if (specifierOrigin.name === "default") {
+          defaultOverride = prop.value;
+          prop.key.name = "default";
+        }
+        return [...acc, prop];
+      }
+
+      return acc;
+    }, []),
+  );
+
+  if (defaultOverride) setDefaultReturn(clone.expression, defaultOverride);
+
+  setProperties(
+    path.node,
+    getProperties(path.node).filter((prop) => {
+      if (!prop.key) return true;
+
+      return prop.key.name !== specifier;
+    }),
+  );
+
+  const newNode = babelTypes.callExpression(
+    path.node.callee,
+    clone.expression.arguments,
+  );
+
+  callback?.(newNode);
+
+  return newNode;
+}
+
+module.exports = { extract_mocked_specifier, getProperties };
