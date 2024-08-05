@@ -317,9 +317,7 @@ module.exports = function babelPlugin(babel) {
               if (path.node.specifiers.length > 1) {
               
                 const newImport = getNewImport(specifierOrigin, specifier);
-                // if(state.file.opts.filename.includes('ShopifyRegister')) {
-                //   console.log(state.opts.filename, specifierOrigin, specifier, newImport)
-                // }
+               
                 path.insertBefore([newImport]);
                 toRemove.push(index);
               }
