@@ -4,7 +4,10 @@
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#syntax
  *
  */
-const { createExpectTransform } = require("./test-utils/expectTransform.js");
+const {
+  createExpectTransform,
+  createExpectPresetTransform,
+} = require("./test-utils/expectTransform.js");
 
 const expectTransform = createExpectTransform(__filename);
 
@@ -88,5 +91,66 @@ describe("babel-jest-boost plugin import rewrites", () => {
       "import { printMsg } from 'empty-npm-package';",
       "import { printMsg } from 'empty-npm-package';",
     );
+  });
+
+  describe("with @babel/preset-env", () => {
+    const expectPresetTransform = createExpectPresetTransform(__filename);
+
+    it("correctly traces specifiers within all import syntaxes", () => {
+      expectPresetTransform(
+        "import target from './test_tree/default';",
+        `var _index = _interopRequireDefault(require("${__dirname}/test_tree/default/index.js"))`,
+      );
+      expectPresetTransform(
+        "import * as target from './test_tree/library';",
+        `var target = _interopRequireWildcard(require("${__dirname}/test_tree/library/index.js"))`,
+      );
+      expectPresetTransform(
+        "import { target } from './test_tree/library';",
+        `var _library = require("${__dirname}/test_tree/library/library.js")`,
+      );
+      expectPresetTransform(
+        "import { target as one } from './test_tree/library';",
+        `var _library = require("${__dirname}/test_tree/library/library.js")`,
+      );
+      expectPresetTransform(
+        "import { one, two, target } from './test_tree/library';",
+        [
+          `var _library = require("${__dirname}/test_tree/library/library.js");`,
+          `var _index = require("${__dirname}/test_tree/library/index.js");`,
+        ],
+      );
+      expectPresetTransform(
+        "import { one, two, target as three } from './test_tree/library';",
+        [
+          `var _library = require("${__dirname}/test_tree/library/library.js");`,
+          `var _index = require("${__dirname}/test_tree/library/index.js");`,
+        ],
+      );
+      expectPresetTransform(
+        "import { 'some string' as target } from './test_tree/as_str';",
+        `var _library = require("${__dirname}/test_tree/library/library.js")`,
+      );
+      expectPresetTransform(
+        "import defaultSpecifier, { target } from './test_tree/default_and_list';",
+        [
+          `var _index = _interopRequireDefault(require("${__dirname}/test_tree/default_and_list/index.js"));`,
+          `var _library = require("${__dirname}/test_tree/library/library.js");`,
+        ],
+      );
+      expectPresetTransform(
+        "import defaultSpecifier, * as target from './test_tree/default_and_list'; const a = defaultSpecifier; const b = target;",
+        [
+          `var _index = _interopRequireWildcard(require("${__dirname}/test_tree/default_and_list/index.js"));`,
+          `var target = _index;`,
+          `var a = _index["default"];`,
+          "var b = target;",
+        ],
+      );
+      expectPresetTransform(
+        "import './test_tree/library';",
+        `require("${__dirname}/test_tree/library/index.js");`,
+      );
+    });
   });
 });

@@ -21,6 +21,7 @@
   "author": "George Tsopanoglou",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
+    "@babel/preset-env": "^7.25.3",
     "@eslint/js": "^9.2.0",
     "empty-npm-package": "^1.0.0",
     "eslint": "^9.2.0",

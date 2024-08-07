@@ -1,4 +1,5 @@
 const babelParser = require("@babel/parser");
+const babelTypes = require("@babel/types");
 
 function matchAnyRegex(regexArray, haystack) {
   for (let i = 0; i < regexArray.length; i++) {
@@ -24,8 +25,30 @@ function babelParse(code) {
   return babelParser.parse(code, parserConfig);
 }
 
+function getNewImport(specifierOrigin, specifier) {
+  return specifierOrigin.name !== "*"
+    ? babelTypes.importDeclaration(
+        [
+          babelTypes.importSpecifier(
+            babelTypes.identifier(specifier.local.name),
+            babelTypes.identifier(specifierOrigin.name),
+          ),
+        ],
+        babelTypes.stringLiteral(specifierOrigin.source),
+      )
+    : babelTypes.importDeclaration(
+        [
+          babelTypes.importNamespaceSpecifier(
+            babelTypes.identifier(specifier.local.name),
+          ),
+        ],
+        babelTypes.stringLiteral(specifierOrigin.source),
+      );
+}
+
 module.exports = {
   matchAnyRegex,
   removeItemsByIndexesInPlace,
   babelParse,
+  getNewImport,
 };

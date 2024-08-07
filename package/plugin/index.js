@@ -1,12 +1,15 @@
 const nodepath = require("path");
 const { resolve } = require("../resolve");
 const { withCache } = require("../cache");
-const { matchAnyRegex, removeItemsByIndexesInPlace } = require("./utils");
+const {
+  matchAnyRegex,
+  removeItemsByIndexesInPlace,
+  getNewImport,
+} = require("./utils");
 const { Tracer } = require("./traverse");
 const {
   extract_mocked_specifier,
 } = require("./codemods/jest-mock/extract_mocked_specifier");
-
 let modulePaths = null;
 let moduleNameMapper = null;
 let ignoreNodeModules = false;
@@ -136,6 +139,7 @@ module.exports = function babelPlugin(babel) {
         }
         path?.node?.specifiers?.forEach((specifier, index) => {
           // import * as Something from './somewhere';
+
           if (babel.types.isImportNamespaceSpecifier(specifier)) {
             const resolved = bjbResolve(
               path.node.source.value,
@@ -190,6 +194,7 @@ module.exports = function babelPlugin(babel) {
               // If this is a single specifier, as
               // import { foo } from './foo.js'
               // then just replace the source
+
               if (path.node.specifiers.length === 1) {
                 if (specifier.local.name === specifierOrigin.name) {
                   // just replace the import path;
@@ -198,15 +203,9 @@ module.exports = function babelPlugin(babel) {
                   );
                   return;
                 }
-                const newImport = babel.types.importDeclaration(
-                  [
-                    babel.types.importSpecifier(
-                      babel.types.identifier(specifier.local.name),
-                      babel.types.identifier(specifierOrigin.name),
-                    ),
-                  ],
-                  babel.types.stringLiteral(specifierOrigin.source),
-                );
+
+                const newImport = getNewImport(specifierOrigin, specifier);
+
                 path.replaceWith(newImport);
                 path.skip();
                 return;
@@ -215,17 +214,9 @@ module.exports = function babelPlugin(babel) {
               // import { foo, bar } from './foo.js'
               // then remove the current specifier and create a new import
               if (path.node.specifiers.length > 1) {
-                path.insertBefore([
-                  babel.types.importDeclaration(
-                    [
-                      babel.types.importSpecifier(
-                        babel.types.identifier(specifier.local.name),
-                        babel.types.identifier(specifierOrigin.name),
-                      ),
-                    ],
-                    babel.types.stringLiteral(specifierOrigin.source),
-                  ),
-                ]);
+                const newImport = getNewImport(specifierOrigin, specifier);
+
+                path.insertBefore([newImport]);
                 toRemove.push(index);
               }
             } else {
