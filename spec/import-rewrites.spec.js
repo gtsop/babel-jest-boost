@@ -71,4 +71,22 @@ describe("babel-jest-boost plugin import rewrites", () => {
       `import { target } from "${__dirname}/test_tree/library/library.js";`,
     );
   });
+
+  it("resolves node_modules", () => {
+    const oneDirUp = __dirname.replace("/spec", "");
+    expectTransform(
+      "import { printMsg } from 'empty-npm-package';",
+      `import { printMsg } from "${oneDirUp}/node_modules/empty-npm-package/index.js";`,
+    );
+  });
+
+  it("does not resolve node_modules if configured", () => {
+    const noNodeModulesExpectTransform = createExpectTransform(__filename, {
+      ignoreNodeModules: true,
+    });
+    noNodeModulesExpectTransform(
+      "import { printMsg } from 'empty-npm-package';",
+      "import { printMsg } from 'empty-npm-package';",
+    );
+  });
 });

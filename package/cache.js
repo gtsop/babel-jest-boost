@@ -21,6 +21,9 @@ function cache(func, ...params) {
 }
 
 function withCache(func) {
+  if (process.env.BJB_ENV === "test") {
+    return func;
+  }
   const map = getCache(func.name);
   return function funcWithCache(...params) {
     // const cacheKey = params.join('-');

@@ -115,6 +115,10 @@ code.js -> imports ./lib/index.js -> imports libFunc.js
 
 This is intended to help you defer refactoring some barels or modules that are causing trouble or breaking your tests when you integrate this plugin.
 
+## `ignoreNodeModules` **[boolean]**
+
+Set this flag to true if you want to completely ignore all node\_modules from being traversed. Default is false.
+
 # Plugin directives
 
 ## `no-boost`

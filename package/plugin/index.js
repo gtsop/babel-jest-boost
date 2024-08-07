@@ -9,7 +9,7 @@ const {
 
 let modulePaths = null;
 let moduleNameMapper = null;
-
+let ignoreNodeModules = false;
 let importWhiteList = [];
 
 const isPathWhitelisted = withCache(function actualIsPathWhitelisted(path) {
@@ -21,7 +21,14 @@ const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
     if (isPathWhitelisted(path)) {
       return path;
     }
-    return resolve(path, basedir, moduleNameMapper, modulePaths);
+
+    const result = resolve(path, basedir, moduleNameMapper, modulePaths);
+
+    if (ignoreNodeModules && result.includes("/node_modules/")) {
+      return path;
+    }
+
+    return result;
   } catch (e) {
     console.log("failed to resolve", e.message);
     return null;
@@ -44,6 +51,7 @@ module.exports = function babelPlugin(babel) {
         moduleNameMapper = state.opts.jestConfig?.moduleNameMapper || {};
         modulePaths = state.opts.jestConfig?.modulePaths || [];
         importWhiteList = state.opts.importIgnorePatterns || [];
+        ignoreNodeModules = state.opts.ignoreNodeModules || false;
 
         const comments = path.parent.comments || [];
         const skipProgramComment = comments.find((comment) =>
