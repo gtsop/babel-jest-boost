@@ -15,6 +15,29 @@ function createTransform(options) {
   });
 }
 
+function createPresetTransform(options) {
+  return babelJest.createTransformer({
+    presets: [
+      [
+        "@babel/preset-env",
+        {
+          useBuiltIns: "usage",
+          corejs: "3.21",
+        },
+      ],
+    ],
+    plugins: [
+      [
+        babelJestBoost,
+        {
+          ...options,
+          jestConfig: { modulePaths: ["<rootDir>/spec/test_tree"] },
+        },
+      ],
+    ],
+  });
+}
+
 function multilineTrim(string) {
   return string
     .split("\n")
@@ -61,6 +84,25 @@ function createExpectTransform(filename, options) {
   };
 }
 
+function createExpectPresetTransform(filename, options) {
+  const transformer = createPresetTransform(options);
+
+  function transform(source) {
+    const output = transformer.process(source, filename, { config: {} });
+    return multilineTrim(output.code.replace(/\/\/# sourceMappingURL.*/, ""));
+  }
+
+  return function expectTransform(input, expectedOutput) {
+    if (Array.isArray(expectedOutput)) {
+      for (let expected of expectedOutput) {
+        expect(transform(input)).toContain(expected);
+      }
+    } else {
+      expect(transform(input)).toContain(expectedOutput);
+    }
+  };
+}
+
 function createExpectJestTransform(filename, options) {
   const transformer = createTransform(options);
 
@@ -80,5 +122,6 @@ function createExpectJestTransform(filename, options) {
 module.exports = {
   createExpectTransform,
   createExpectJestTransform,
+  createExpectPresetTransform,
   multilineTrim,
 };
