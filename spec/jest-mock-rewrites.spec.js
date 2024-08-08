@@ -18,6 +18,37 @@ describe("babel-jest-boost plugin jest.mock rewrites", () => {
     );
 
     expectJestTransform(
+      `import target from './test_tree/default';
+      jest.mock('./test_tree/default');`,
+      `
+      _getJestObj().mock("${__dirname}/test_tree/default/index.js");
+      import { default as target } from "/Users/malo/Code/babel-jest-boost/spec/test_tree/default/index.js";
+      `,
+    );
+
+    // Make sure we mock all exports from a barrel file with their resolved paths
+    expectJestTransform(
+      `import { target } from './test_tree/global';
+      jest.mock('./test_tree/global');`,
+      `
+      _getJestObj().mock("${__dirname}/test_tree/library/library.js");
+      _getJestObj().mock("${__dirname}/test_tree/library/otherLibrary.js");
+      import { target } from "${__dirname}/test_tree/library/library.js";
+      `,
+    );
+
+    // Make sure we mock all exports from a barrel file with their resolved paths
+    expectJestTransform(
+      `import { libraryGlob } from './test_tree/global_as';
+      jest.mock('./test_tree/global_as');`,
+      `
+      _getJestObj().mock("${__dirname}/test_tree/library/library.js");
+      _getJestObj().mock("${__dirname}/test_tree/library/otherLibrary.js");
+      import * as libraryGlob from "${__dirname}/test_tree/library/index.js";
+      `,
+    );
+
+    expectJestTransform(
       "jest.mock('./test_tree/default', () => {});",
       `_getJestObj().mock("${__dirname}/test_tree/default/index.js", () => {});`,
     );

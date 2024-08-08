@@ -73,13 +73,15 @@ module.exports = function babelPlugin(babel) {
             path.node.arguments[0].value,
             nodepath.dirname(state.file.opts.filename),
           );
-          if (isPathWhitelisted(resolved)) {
+          if (!resolved || isPathWhitelisted(resolved)) {
             return;
           }
 
           path.node.arguments[0].value = resolved;
 
           const importedFrom = resolved;
+
+          const newCallExpressions = [];
 
           if (path.node.arguments.length > 1) {
             // jest.mock('./origin.js', () => ({ target: value }))
@@ -109,6 +111,59 @@ module.exports = function babelPlugin(babel) {
             } catch (e) {
               console.log("failed to parse mock statement: ", e);
             }
+          } else {
+            const ast = tracer.codeFileToAST(resolved);
+
+            ast.program.body.forEach((node) => {
+              if (
+                node.source &&
+                (babel.types.isExportNamedDeclaration(node) ||
+                  babel.types.isExportAllDeclaration(node))
+              ) {
+                let resolvedExport = bjbResolve(
+                  node.source.value,
+                  nodepath.dirname(resolved),
+                );
+
+                node.specifiers?.forEach((specifier) => {
+                  if (specifier.local) {
+                    let specifierOrigin = traceSpecifierOrigin(
+                      specifier.local.name,
+                      resolved,
+                    );
+
+                    if (specifierOrigin)
+                      resolvedExport = specifierOrigin.source;
+                  }
+                });
+
+                if (resolvedExport === node.source.value) return;
+
+                const newCallExpression = babel.types.callExpression(
+                  path.node.callee,
+                  [babel.types.stringLiteral(resolvedExport)],
+                );
+                newCallExpressions.push(newCallExpression);
+              }
+              // else if (
+              //   babel.types.isExportAllDeclaration(node) &&
+              //   node.source
+              // ) {
+              //   let resolvedExport = bjbResolve(
+              //     node.source.value,
+              //     nodepath.dirname(resolved),
+              //   );
+
+              //   const newCallExpression = babel.types.callExpression(
+              //     path.node.callee,
+              //     [babel.types.stringLiteral(resolvedExport)],
+              //   );
+              //   newCallExpressions.push(newCallExpression);
+              // }
+            });
+          }
+          if (newCallExpressions.length > 0) {
+            path.replaceWithMultiple(newCallExpressions);
           }
         }
       },
