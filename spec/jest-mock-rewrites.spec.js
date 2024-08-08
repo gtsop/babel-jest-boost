@@ -22,7 +22,7 @@ describe("babel-jest-boost plugin jest.mock rewrites", () => {
       jest.mock('./test_tree/default');`,
       `
       _getJestObj().mock("${__dirname}/test_tree/default/index.js");
-      import { default as target } from "/Users/malo/Code/babel-jest-boost/spec/test_tree/default/index.js";
+      import { default as target } from "${__dirname}/test_tree/default/index.js";
       `,
     );
 
@@ -49,6 +49,19 @@ describe("babel-jest-boost plugin jest.mock rewrites", () => {
     );
 
     expectJestTransform(
+      `import { libraryGlob } from './test_tree/global_as';
+      jest.mock('./test_tree/global_as', () => ({ libraryGlob: { library: jest.fn() } }));`,
+      `
+      _getJestObj().mock("${__dirname}/test_tree/library/index.js", () => ({
+      ...{
+        library: jest.fn()
+      }
+      }));
+      import * as libraryGlob from "${__dirname}/test_tree/library/index.js";
+      `,
+    );
+
+    expectJestTransform(
       "jest.mock('./test_tree/default', () => {});",
       `_getJestObj().mock("${__dirname}/test_tree/default/index.js", () => {});`,
     );
@@ -64,11 +77,11 @@ describe("babel-jest-boost plugin jest.mock rewrites", () => {
     expectJestTransform(
       `jest.mock('./test_tree/consts', () => ({ a: 1, b: 2 }));`,
       `
-        _getJestObj().mock("${__dirname}/test_tree/consts/b.js", () => ({
-          b: 2
-        }));
         _getJestObj().mock("${__dirname}/test_tree/consts/a.js", () => ({
           a: 1
+        }));
+        _getJestObj().mock("${__dirname}/test_tree/consts/b.js", () => ({
+          b: 2
         }));
       `,
     );

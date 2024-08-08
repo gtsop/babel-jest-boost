@@ -8,8 +8,9 @@ const {
 } = require("./utils");
 const { Tracer } = require("./traverse");
 const {
-  extract_mocked_specifier,
-} = require("./codemods/jest-mock/extract_mocked_specifier");
+  extractMockedSpecifier,
+  getMockedModuleProperties,
+} = require("../jest-utils/extractMockedSpecifier");
 let modulePaths = null;
 let moduleNameMapper = null;
 let ignoreNodeModules = false;
@@ -79,34 +80,42 @@ module.exports = function babelPlugin(babel) {
 
           path.node.arguments[0].value = resolved;
 
-          const importedFrom = resolved;
-
           const newCallExpressions = [];
+          let replace = true;
 
           if (path.node.arguments.length > 1) {
-            // jest.mock('./origin.js', () => ({ target: value }))
-            // Figure out the mocked specifier, trace it and re-write the mock call;
+            const props = getMockedModuleProperties(path.node);
+
             try {
-              path.node.arguments?.[1]?.body?.properties?.forEach((objProp) => {
+              props?.forEach((objProp) => {
                 const mockedIdentifier = objProp?.key?.name;
 
                 const specifierOrigin = traceSpecifierOrigin(
                   mockedIdentifier,
-                  importedFrom,
+                  resolved,
                 );
 
                 if (!specifierOrigin) {
                   return;
                 }
 
-                if (importedFrom === specifierOrigin.source) {
+                if (resolved === specifierOrigin.source) {
+                  replace = false;
                   // specifier is imported from the already resolved place, skip
                   return;
                 }
 
-                extract_mocked_specifier(path, mockedIdentifier, (node) => {
-                  node.expression.arguments[0].value = specifierOrigin.source;
-                });
+                const newCallExpression = extractMockedSpecifier(
+                  path,
+                  mockedIdentifier,
+                  specifierOrigin,
+                  (node) => {
+                    node.arguments[0].value = specifierOrigin.source;
+                  },
+                );
+
+                if (newCallExpression)
+                  newCallExpressions.push(newCallExpression);
               });
             } catch (e) {
               console.log("failed to parse mock statement: ", e);
@@ -145,25 +154,11 @@ module.exports = function babelPlugin(babel) {
                 );
                 newCallExpressions.push(newCallExpression);
               }
-              // else if (
-              //   babel.types.isExportAllDeclaration(node) &&
-              //   node.source
-              // ) {
-              //   let resolvedExport = bjbResolve(
-              //     node.source.value,
-              //     nodepath.dirname(resolved),
-              //   );
-
-              //   const newCallExpression = babel.types.callExpression(
-              //     path.node.callee,
-              //     [babel.types.stringLiteral(resolvedExport)],
-              //   );
-              //   newCallExpressions.push(newCallExpression);
-              // }
             });
           }
           if (newCallExpressions.length > 0) {
-            path.replaceWithMultiple(newCallExpressions);
+            if (replace) path.replaceWithMultiple(newCallExpressions);
+            else path.insertAfter(newCallExpressions);
           }
         }
       },
