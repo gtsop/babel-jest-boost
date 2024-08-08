@@ -1,31 +1,9 @@
 const babelJest = require("babel-jest").default;
 const babelJestBoost = require.resolve("../../package/plugin/index.js");
 
-function createTransform(options) {
+function createTransform(options, babelConfig = {}) {
   return babelJest.createTransformer({
-    plugins: [
-      [
-        babelJestBoost,
-        {
-          ...options,
-          jestConfig: { modulePaths: ["<rootDir>/spec/test_tree"] },
-        },
-      ],
-    ],
-  });
-}
-
-function createPresetTransform(options) {
-  return babelJest.createTransformer({
-    presets: [
-      [
-        "@babel/preset-env",
-        {
-          useBuiltIns: "usage",
-          corejs: "3.21",
-        },
-      ],
-    ],
+    ...babelConfig,
     plugins: [
       [
         babelJestBoost,
@@ -71,21 +49,9 @@ function removeJestBlob(input) {
 
   return multilineRemove(input, jestBlob);
 }
-function createExpectTransform(filename, options) {
-  const transformer = createTransform(options);
 
-  function transform(source) {
-    const output = transformer.process(source, filename, { config: {} });
-    return multilineTrim(output.code.replace(/\/\/# sourceMappingURL.*/, ""));
-  }
-
-  return function expectTransform(input, expectedOutput) {
-    expect(transform(input)).toBe(multilineTrim(expectedOutput));
-  };
-}
-
-function createExpectPresetTransform(filename, options) {
-  const transformer = createPresetTransform(options);
+function createExpectTransform(filename, options, babelConfig) {
+  const transformer = createTransform(options, babelConfig);
 
   function transform(source) {
     const output = transformer.process(source, filename, { config: {} });
@@ -98,7 +64,7 @@ function createExpectPresetTransform(filename, options) {
         expect(transform(input)).toContain(expected);
       }
     } else {
-      expect(transform(input)).toContain(expectedOutput);
+      expect(transform(input)).toContain(multilineTrim(expectedOutput));
     }
   };
 }
@@ -122,6 +88,5 @@ function createExpectJestTransform(filename, options) {
 module.exports = {
   createExpectTransform,
   createExpectJestTransform,
-  createExpectPresetTransform,
   multilineTrim,
 };
