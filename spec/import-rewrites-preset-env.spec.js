@@ -33,6 +33,13 @@ describe("babel-jest-boost plugin import rewrites when using @babel/preset-env",
       `var target = _interopRequireWildcard(require("${__dirname}/test_tree/library/index.js"))`,
     );
     expectTransform(
+      "import { library } from './test_tree/library_as'; const target = library.target;",
+      [
+        `var library = _interopRequireWildcard(require("${__dirname}/test_tree/library_as/library.js"))`,
+        "var target = library.target;",
+      ],
+    );
+    expectTransform(
       "import { target } from './test_tree/library';",
       `var _library = require("${__dirname}/test_tree/library/library.js")`,
     );
