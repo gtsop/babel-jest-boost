@@ -1,20 +1,25 @@
-# babel-jest-boost
+<h1 align="center">
+  <div>🐠 🃏 🚀</div>
+  <br/>
+  <p>Babel Jest Boost</p>
+</h1>
+<p align="center">Brings tree-shaking to Jest, speeding up your test runs, using Babel</p>
 
-# Description
+## Overview
 
-Improve the performance of your jest tests via bypassing re-exports and barel files which prevents jest from requiring, compiling and running code you did not intend to run.
+`babel-jest-boost` figures out the original export of your imported specifiers and rewrites your import statements to bypass barrel files and re-exports. This prevents jest from requiring, compiling and executing irrelevant code, speeding up your test runs.
 
-This plugin modifies your code test-time (when babel-jest transpiles your code to be ran in jest). It will figure out the original exporter of every specifier imported in the files and modify these imports to directly require the specifiers from the original exporter. For instance, assume this file structure:
+Assume the following structure:
 
 ```bash
 .
 ├── lib
-│   ├── lib.js     // export function libFunc () {}
-│   └── index.js   // export * from './lib.js'
-└── code.js        // import { libFunc } from './lib';
+│   ├── lib.js     # export function libFunc () {}
+│   └── index.js   # export * from './lib.js'
+└── code.js        # import { libFunc } from './lib';
 ```
 
-When ran in jest, this plugin will convert the import statement in `code.js` to:
+Only for the testing transpilation `babel-jest-boost` will convert the import statement in `code.js` to:
 
 ```javascript
 import { libFunc } from '/home/myuser/myproject/lib/lib.js';
@@ -22,17 +27,17 @@ import { libFunc } from '/home/myuser/myproject/lib/lib.js';
 
 It will also replace `jest.mock()` function calls in exaclty the same manner.
 
-# Integration
+## Integration
 
-## 1. Install the package
+### 1. Install the package
 
 ```bash
 npm install -D @gtsopanoglou/babel-jest-boost
 ```
 
-## 2. Update your babel-jest transformer
+### 2. Update your babel-jest transformer
 
-### Option 1: `babel-jest-boost/plugin`
+#### Option 1: `babel-jest-boost/plugin`
 
 You may use `babel-jest-boost` as a regular babel plugin. It needs access to your jest config (`moduleNameMapper` and `modulePaths` in particular). To help you do that we export a `jestConfig` object:
 
@@ -49,7 +54,7 @@ You may use `babel-jest-boost` as a regular babel plugin. It needs access to you
  ]
 ```
 
-### Option 2 (experimental): `babel-jest-boost/transformer`
+#### Option 2 (experimental): `babel-jest-boost/transformer`
 
 This option **is not recommended yet** because it hasn't been tested thoroughly. Use can the pre-made transformer exported from `@gtsopanoglou/babel-jest-boost/transformer` which takes care of passing the `jestConfig` object for you:
 
@@ -61,77 +66,82 @@ This option **is not recommended yet** because it hasn't been tested thoroughly.
 + module.exports = babelJestBoost.createTransformer({ /* babel config */ }, { /* babel-jest-boost options */ });
 ```
 
-## 3. Prevent `babel-jest-boost` from re-writing imports that break tests
+### 3. Run your tests, prevent breakages
 
-In order to integrate this plugin you're gonna need to run your test suite and fix potential breakages. Since `babel-jest-boost` modifies the transpiled code, you'll need to clear jest's cache before each run during this step to ensure you see non-cached results:
+Since `babel-jest-boost` modifies the transpiled code, you will need to clear jest's cache before each run (just for this integration phase) to ensure you see non-cached results:
 
-```
+```bash
 jest --clearCache && jest # or whatever you testing command is
 ```
 
-It is likely that some tests of yours will now break. The breakage may be caused either by some implicit dependency in your code that you're probably not aware of, or some case not being properly supported by `babel-jest-boost`. Either way, you are not goint to fix those right now. In order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and the `no-boost` directive.
+It is likely that some tests will now break. The breakage may be caused by some implicit dependency in your code that you're not aware of, or some bug within `babel-jest-boost`.
+Either way, you are not going to fix them right now. In order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and the `no-boost` directive.
 
-1. Use `importIgnorePatterns` to batch-block specific barels or paths are commonly imported in your codebase and are causing your tests to break (since you added this plugin)
+Use `importIgnorePatterns` to match import statements that cause breakages when by-passed. For instance:
 
-2. Use `no-boost` directive to hand-pick specific test or source code files that are breaking (since you added this plugin)
+```javascript
+import { port } from 'config';
 
-3. Re-iterate until your tests are green again.
+console.log(port)
+```
 
-## 4. Done
+Use `{ importIgnorePatterns: ['config'] }` to prevent `babel-jest-boost` from re-writing this import statement.
 
-Once your tests are green again you are done. You can now keep running your tests are usual without having to clear your cache.
+The `no-boost` directive prevent the whole file (either test file or source code) from being parsed and re-written by `babel-jest-boost`. For instance:
+
+```javascript
+// @babel-jest-boost no-boost
+import { port } from 'config';
+
+console.log(port)
+```
+
+### 4. Re-iterate until your tests are green again.
+
+### 5. Done
+
+Once your tests are green, you are done. You can now keep running your tests are usual without having to clear your cache.
 
 # Plugin options
 
-## `importIgnorePatterns` **[array\<string\>]**
+### `importIgnorePatterns` **[array\<string\>]**
 
-Array of strings/regexes, files matching these regexes will block `babel-jest-boost` from bypassing them. These regexes are being matched against the import paths within your code. For instance, assuming the example above:
+Array of strings/regexes, import paths matching these regexes will prevent `babel-jest-boost` from rewritting them. For instance, assuming the example above:
 
-```
+```bash
 .
 ├── lib
-│   ├── lib.js     // export function libFunc () {}
-│   └── index.js   // export * from './lib.js'
-└── code.js        // import { libFunc } from './lib';
+│   ├── lib.js     # export function libFunc () {}
+│   └── index.js   # export * from './lib.js'
+└── code.js        # import { libFunc } from './lib';
 ```
 
 In this scenario, `importIgnorePatterns` will be matched against the only import statement in this tree, `import { libFunc } from './lib'`, so if you wish to exclude imports to `./lib` from being re-written, you can use:
 
-```
+```javascript
 { importIgnorePatterns: ['./lib'] }
 ```
 
-Here is another way of looking at it, assume your code imports a `libFunc` via a barel file:
+This is intended to help you defer refactoring some barrels or modules that are causing trouble or breaking your tests when you integrate this plugin.
 
-code.js -> imports ./lib/index.js -> imports libFunc.js
+### `ignoreNodeModules` **[boolean]**
 
-The plugin will have this effect:
+Set this flag to true if you want to completely ignore all node\_modules imports from being re-written. Default is false.
 
-code.js -> imports ~~./lib/index.js imports ->~~ libFunc.js
+## Plugin directives
 
-Using `{ importIgnorePatterns: ['./lib']}` will prevent the plugin from bypassing `./lib`, leaving your code as before:
-
-code.js -> imports ./lib/index.js -> imports libFunc.js
-
-This is intended to help you defer refactoring some barels or modules that are causing trouble or breaking your tests when you integrate this plugin.
-
-## `ignoreNodeModules` **[boolean]**
-
-Set this flag to true if you want to completely ignore all node\_modules from being traversed. Default is false.
-
-# Plugin directives
-
-## `no-boost`
+### `no-boost`
 
 You can let the plugin know that you do not wish to parse a particular file by adding the following comment anywhere within the file (usually at the top)
 
-```
+```javascript
 // @babel-jest-boost no-boost
+import { libFunc } from './lib';
 ```
 
 Any import statements within this particular file will not be re-written.
 
-# ROADMAP
+## ROADMAP
 
 - 0.1.11 Ensure all different import/export syntaxes are properly treated. ✅
 - 0.1.12 Performance increase, tracing prioritization and defensive try/catch ✅
