@@ -11,8 +11,13 @@ const {
   extractMockedSpecifier,
 } = require("./extractMockedSpecifier");
 
-function rewriteMocks(path, resolved) {
+function rewriteMocks(path, state) {
   if (path.node.callee?.property?.name === "mock") {
+    const resolved = resolve(
+      path.node.arguments[0].value,
+      nodepath.dirname(state.file.opts.filename),
+    );
+
     if (!resolved || isPathWhitelisted(resolved)) {
       return;
     }

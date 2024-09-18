@@ -31,13 +31,7 @@ module.exports = function babelPlugin(babel) {
           // Skip parsing of ImportDeclaration if flag is true
           return;
         }
-        rewriteMocks(
-          path,
-          resolve(
-            path.node.arguments[0].value,
-            nodepath.dirname(state.opts.filename),
-          ),
-        );
+        rewriteMocks(path, state);
       },
       ImportDeclaration(path, state) {
         if (state.skipParsing) {
