@@ -6,7 +6,13 @@ function createTransformer(config = {}, pluginConfig = {}) {
   if (!config.plugins) {
     config.plugins = [];
   }
-  config.plugins.push([babelJestBoost, { jestConfig, ...pluginConfig }]);
+
+  const configContainsBoost = config.plugins.some(
+    (p) => p[0] === babelJestBoost,
+  );
+  if (!configContainsBoost) {
+    config.plugins.push([babelJestBoost, { jestConfig, ...pluginConfig }]);
+  }
 
   const transformer = babelJest.createTransformer(config);
 

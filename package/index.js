@@ -1,3 +1,3 @@
-const plugin = require("./plugin/index.js");
+const { createTransformer } = require("./transformer/index.js");
 
-module.exports = plugin;
+module.exports = { createTransformer };
