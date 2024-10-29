@@ -1,60 +1,23 @@
 const nodepath = require("path");
-const { resolve } = require("../resolve");
-const { withCache } = require("../cache");
 const {
-  matchAnyRegex,
-  removeItemsByIndexesInPlace,
-  getNewImport,
-} = require("./utils");
-const { Tracer } = require("./traverse");
-const {
-  extract_mocked_specifier,
-} = require("./codemods/jest-mock/extract_mocked_specifier");
-let modulePaths = null;
-let moduleNameMapper = null;
-let ignoreNodeModules = false;
-let importWhiteList = [];
-
-const isPathWhitelisted = withCache(function actualIsPathWhitelisted(path) {
-  return matchAnyRegex(importWhiteList, path);
-});
-
-const bjbResolve = withCache(function resolveWithWhitelist(path, basedir) {
-  try {
-    if (isPathWhitelisted(path)) {
-      return path;
-    }
-
-    const result = resolve(path, basedir, moduleNameMapper, modulePaths);
-
-    if (ignoreNodeModules && result.includes("/node_modules/")) {
-      return path;
-    }
-
-    return result;
-  } catch (e) {
-    console.log("failed to resolve", e.message);
-    return null;
-  }
-});
-
-const tracer = new Tracer(bjbResolve);
-
-const traceSpecifierOrigin = withCache(
-  function actualTraceSpecifierOrigin(specifierName, codeFilePath) {
-    return tracer.traceOriginalExport(specifierName, codeFilePath);
-  },
-);
+  initializeHelpers,
+  resolve,
+  isPathWhitelisted,
+  traceSpecifierOrigin,
+} = require("./helpers");
+const { removeItemsByIndexesInPlace, getNewImport } = require("./utils");
+const { rewriteMocks } = require("./codemods/jest-mock/rewrite-mocks");
 
 module.exports = function babelPlugin(babel) {
   return {
     visitor: {
       Program(path, state) {
-        // setup config
-        moduleNameMapper = state.opts.jestConfig?.moduleNameMapper || {};
-        modulePaths = state.opts.jestConfig?.modulePaths || [];
-        importWhiteList = state.opts.importIgnorePatterns || [];
-        ignoreNodeModules = state.opts.ignoreNodeModules || false;
+        initializeHelpers({
+          modulePaths: state.opts.jestConfig?.modulePaths || [],
+          moduleNameMapper: state.opts.jestConfig?.moduleNameMapper || {},
+          ignoreNodeModules: state.opts.ignoreNodeModules || false,
+          importWhiteList: state.opts.importIgnorePatterns || [],
+        });
 
         const comments = path.parent.comments || [];
         const skipProgramComment = comments.find((comment) =>
@@ -68,49 +31,7 @@ module.exports = function babelPlugin(babel) {
           // Skip parsing of ImportDeclaration if flag is true
           return;
         }
-        if (path.node.callee?.property?.name === "mock") {
-          const resolved = bjbResolve(
-            path.node.arguments[0].value,
-            nodepath.dirname(state.file.opts.filename),
-          );
-          if (isPathWhitelisted(resolved)) {
-            return;
-          }
-
-          path.node.arguments[0].value = resolved;
-
-          const importedFrom = resolved;
-
-          if (path.node.arguments.length > 1) {
-            // jest.mock('./origin.js', () => ({ target: value }))
-            // Figure out the mocked specifier, trace it and re-write the mock call;
-            try {
-              path.node.arguments?.[1]?.body?.properties?.forEach((objProp) => {
-                const mockedIdentifier = objProp?.key?.name;
-
-                const specifierOrigin = traceSpecifierOrigin(
-                  mockedIdentifier,
-                  importedFrom,
-                );
-
-                if (!specifierOrigin) {
-                  return;
-                }
-
-                if (importedFrom === specifierOrigin.source) {
-                  // specifier is imported from the already resolved place, skip
-                  return;
-                }
-
-                extract_mocked_specifier(path, mockedIdentifier, (node) => {
-                  node.expression.arguments[0].value = specifierOrigin.source;
-                });
-              });
-            } catch (e) {
-              console.log("failed to parse mock statement: ", e);
-            }
-          }
-        }
+        rewriteMocks(path, state);
       },
       ImportDeclaration(path, state) {
         if (state.skipParsing) {
@@ -123,7 +44,7 @@ module.exports = function babelPlugin(babel) {
         }
         // import 'some-raw-file.css'
         if (path.node.specifiers.length === 0) {
-          const resolved = bjbResolve(
+          const resolved = resolve(
             path.node.source.value,
             nodepath.dirname(state.file.opts.filename),
           );
@@ -141,7 +62,7 @@ module.exports = function babelPlugin(babel) {
           // import * as Something from './somewhere';
 
           if (babel.types.isImportNamespaceSpecifier(specifier)) {
-            const resolved = bjbResolve(
+            const resolved = resolve(
               path.node.source.value,
               nodepath.dirname(state.file.opts.filename),
             );
@@ -163,7 +84,7 @@ module.exports = function babelPlugin(babel) {
             return;
           }
 
-          const importedFrom = bjbResolve(
+          const importedFrom = resolve(
             path.node.source.value,
             nodepath.dirname(state.file.opts.filename),
           );
