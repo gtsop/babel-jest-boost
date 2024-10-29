@@ -1,7 +1,7 @@
-<h1 align="center">
-  <div>🐠 🃏 🚀</div>
+<h1>
+  <p align="center">🐠 🃏 🚀</p>
   <br/>
-  <p>Babel Jest Boost</p>
+  <p align="center">Babel Jest Boost</p>
 </h1>
 <p align="center">Brings tree-shaking to Jest, speeding up your test runs, using Babel</p>
 
