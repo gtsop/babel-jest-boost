@@ -13,13 +13,13 @@ It is a Babel plugin that re-writes your import statements to skip intermediate 
 
 ## Usage
 
-### 1. Install the package
+### Step 1: Install the package
 
 ```bash
 npm install -D @gtsopanoglou/babel-jest-boost
 ```
 
-### 2. Update your babel-jest transformer
+### Step 2: Use the `babel-jest-boost` transformer in your jest config
 
 #### Method 1
 
@@ -147,7 +147,7 @@ module.exports = babelJest.createTransformer({
 ```
 </details>
 
-### 3. Run your tests, prevent breakages
+### Step 3: Run your tests, prevent breakages
 
 Since `babel-jest-boost` modifies the transpiled code, you will need to clear jest's cache before each run (just for this integration phase) to ensure you see non-cached results:
 
@@ -156,7 +156,7 @@ jest --clearCache && jest # or whatever you testing command is
 ```
 
 It is likely that some tests will now break. The breakage may be caused by some implicit dependency in your code that you're not aware of, or some bug within `babel-jest-boost`.
-Either way, you are not going to fix them right now. In order to overcome this problem you have two tools: `importIgnorePatterns` plugin option and the `no-boost` directive.
+Either way, you are not going to fix them right now. In order to avoid this problem you have two tools: `importIgnorePatterns` plugin option and the `no-boost` directive.
 
 Use `importIgnorePatterns` to match import statements that cause breakages when by-passed. For instance:
 
@@ -181,13 +181,13 @@ console.log(port)
 
 ### 5. Done
 
-Once your tests are green, you are done. You can now keep running your tests are usual without having to clear your cache.
+Once your tests are green, you are done. You can now keep running your tests as usual without having to clear your cache.
 
 # Plugin options
 
 ### `importIgnorePatterns` **[array\<string\>]**
 
-Array of strings/regexes, import paths matching these regexes will prevent `babel-jest-boost` from rewritting them. For instance, assuming the example above:
+Array of strings/regexes, import paths matching these regexes will prevent `babel-jest-boost` from rewritting them. For instance, assuming this tree:
 
 ```bash
 .
@@ -231,8 +231,9 @@ Any import statements within this particular file will not be re-written.
 - 0.1.15 Performance improvements ✅
 - 0.1.16 ignore node_modules config option ✅
 - 0.1.17 babel/preset-env compatibility ✅
-- 0.1.18 Ensure all different `jest.mock` calls are properly treated.
-- 0.1.19 Expose debugging options to the user (like printing which imports are being rewritten, or the transpiled output of a particular file).
-- 0.1.20 Expose a jest reporter to print a high-level overview of what the plugin did within the run (and potientialy report barel file statistics)
-- 0.1.21 Performance testing: Fork some open-source codebases, integrate `babel-jest-boost` and test to measure the performance increase. Do this in the CI/CD pipeline
-- 0.1.22 Figure out automatic changelog, version increase, github release, npm publish actions
+- 0.1.18 Ensure all different `jest.mock` calls are properly treated. ✅
+- 0.1.19 Export plain `@gtsopanoglou/babel-jest-boost` transformer as drop-in replacement for `babel-jest` ✅
+- 0.1.20 Expose debugging options to the user (like printing which imports are being rewritten, or the transpiled output of a particular file).
+- 0.1.21 Expose a jest reporter to print a high-level overview of what the plugin did within the run (and potientialy report barel file statistics)
+- 0.1.22 Performance testing: Fork some open-source codebases, integrate `babel-jest-boost` and test to measure the performance increase. Do this in the CI/CD pipeline
+- 0.1.23 Figure out automatic changelog, version increase, github release, npm publish actions
