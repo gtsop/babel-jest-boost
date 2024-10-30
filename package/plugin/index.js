@@ -20,23 +20,41 @@ module.exports = function babelPlugin(babel, options) {
     visitor: {
       Program(path, state) {
         const comments = path.parent.comments || [];
-        const skipProgramComment = comments.find((comment) =>
-          comment.value.trim().includes("@babel-jest-boost no-boost"),
-        );
+        const skipProgramComment = comments.find((comment) => {
+          return comment.value.trim() === "@babel-jest-boost no-boost";
+        });
+        const skipLines = comments
+          .filter((comment) => {
+            return comment.value.trim() === "@babel-jest-boost no-boost-next";
+          })
+          .map((comment) => {
+            return comment?.loc?.end?.line + 1;
+          });
+
         state.skipParsing = Boolean(skipProgramComment);
+        state.skipLines = skipLines;
       },
       CallExpression(path, state) {
         if (state.skipParsing) {
-          // Skip parsing of ImportDeclaration if flag is true
+          // no-boost
+          return;
+        }
+        if (state.skipLines.includes(path?.node?.loc?.start?.line)) {
+          // no-boost-next
           return;
         }
         rewriteMocks(path, state);
       },
       ImportDeclaration(path, state) {
         if (state.skipParsing) {
-          // Skip parsing of ImportDeclaration if flag is true
+          // no-boost
           return;
         }
+        if (state.skipLines.includes(path?.node?.loc?.start?.line)) {
+          // no-boost-next
+          return;
+        }
+
         const toRemove = [];
         if (isPathWhitelisted(path.node.source.value)) {
           return;

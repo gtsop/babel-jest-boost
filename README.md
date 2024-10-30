@@ -102,26 +102,7 @@ jest --clearCache && jest # or whatever you testing command is
 ```
 
 It is likely that some tests will now break. The breakage may be caused by some implicit dependency in your code that you're not aware of, or some bug within `babel-jest-boost`.
-Either way, you are not going to fix them right now. In order to avoid this problem you have two tools: `importIgnorePatterns` plugin option and the `no-boost` directive.
-
-Use `importIgnorePatterns` to match import statements that cause breakages when by-passed. For instance:
-
-```javascript
-import { port } from 'config';
-
-console.log(port)
-```
-
-Use `{ importIgnorePatterns: ['config'] }` to prevent `babel-jest-boost` from re-writing this import statement.
-
-The `no-boost` directive prevent the whole file (either test file or source code) from being parsed and re-written by `babel-jest-boost`. For instance:
-
-```javascript
-// @babel-jest-boost no-boost
-import { port } from 'config';
-
-console.log(port)
-```
+Either way, you are not going to fix them right now. In order to avoid this problem you have two tools: `importIgnorePatterns` plugin option and the `no-boost`/`no-boost-next` directives.
 
 ### 4. Re-iterate until your tests are green again.
 
@@ -159,14 +140,20 @@ Set this flag to true if you want to completely ignore all node\_modules imports
 
 ### `no-boost`
 
-You can let the plugin know that you do not wish to parse a particular file by adding the following comment anywhere within the file (usually at the top)
+You can ommit transforming all imports/mocks within a file by adding this comment at the top
 
 ```javascript
 // @babel-jest-boost no-boost
 import { libFunc } from './lib';
 ```
 
-Any import statements within this particular file will not be re-written.
+### `no-boost-next`
+
+You can ommit specific imports/mocks within a file by adding this comment right above the code to be ommited
+```javascript
+// @babel-jest-boost no-boost-next
+import { libFunc } from './lib';
+```
 
 ## ROADMAP
 - 0.1.22 Expose debugging options to the user (like printing which imports are being rewritten, or the transpiled output of a particular file).
