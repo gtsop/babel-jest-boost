@@ -169,7 +169,7 @@ import { libFunc } from './lib';
 Any import statements within this particular file will not be re-written.
 
 ## ROADMAP
-- 0.1.20 Expose debugging options to the user (like printing which imports are being rewritten, or the transpiled output of a particular file).
-- 0.1.21 Expose a jest reporter to print a high-level overview of what the plugin did within the run (and potientialy report barel file statistics)
-- 0.1.22 Performance testing: Fork some open-source codebases, integrate `babel-jest-boost` and test to measure the performance increase. Do this in the CI/CD pipeline
-- 0.1.23 Figure out automatic changelog, version increase, github release, npm publish actions
+- 0.1.22 Expose debugging options to the user (like printing which imports are being rewritten, or the transpiled output of a particular file).
+- 0.1.23 Expose a jest reporter to print a high-level overview of what the plugin did within the run (and potientialy report barel file statistics)
+- 0.1.24 Performance testing: Fork some open-source codebases, integrate `babel-jest-boost` and test to measure the performance increase. Do this in the CI/CD pipeline
+- 0.1.25 Figure out automatic changelog, version increase, github release, npm publish actions
