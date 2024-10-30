@@ -8,22 +8,21 @@ const {
 const { removeItemsByIndexesInPlace, getNewImport } = require("./utils");
 const { rewriteMocks } = require("./codemods/jest-mock/rewrite-mocks");
 
-module.exports = function babelPlugin(babel) {
+module.exports = function babelPlugin(babel, options) {
+  initializeHelpers({
+    modulePaths: options.jestConfig?.modulePaths || [],
+    moduleNameMapper: options.jestConfig?.moduleNameMapper || {},
+    ignoreNodeModules: options.ignoreNodeModules || false,
+    importWhiteList: options.importIgnorePatterns || [],
+  });
+
   return {
     visitor: {
       Program(path, state) {
-        initializeHelpers({
-          modulePaths: state.opts.jestConfig?.modulePaths || [],
-          moduleNameMapper: state.opts.jestConfig?.moduleNameMapper || {},
-          ignoreNodeModules: state.opts.ignoreNodeModules || false,
-          importWhiteList: state.opts.importIgnorePatterns || [],
-        });
-
         const comments = path.parent.comments || [];
         const skipProgramComment = comments.find((comment) =>
           comment.value.trim().includes("@babel-jest-boost no-boost"),
         );
-
         state.skipParsing = Boolean(skipProgramComment);
       },
       CallExpression(path, state) {
