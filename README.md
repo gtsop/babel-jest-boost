@@ -3,13 +3,11 @@
   <br/>
   <p align="center">Babel Jest Boost</p>
 </h1>
-<p align="center">Brings tree-shaking* to Jest, speeding up your test runs, using babel-jest</p>
+<p align="center">Faster tests, using Babel</p>
 
 ## Overview
 
-`babel-jest-boost` makes your tests run faster by solving the [problem of unecessary imports from barrel files](https://github.com/jestjs/jest/issues/11234)
-
-It is a Babel plugin that re-writes your import statements to skip intermediate re-exports, thus bypassing barrel files.
+`babel-jest-boost` is a Babel plugin that makes your tests run faster by solving the [problem of unecessary imports from barrel files](https://github.com/jestjs/jest/issues/11234). It does that by re-writing your import statements (only for tests) to skip intermediate re-exports, thus bypassing barrel files.
 
 ## Usage
 
@@ -19,11 +17,11 @@ It is a Babel plugin that re-writes your import statements to skip intermediate 
 npm install -D @gtsopanoglou/babel-jest-boost
 ```
 
-### Step 2: Use the `babel-jest-boost` transformer in your jest config
+### Step 2: Use the `babel-jest-boost` plugin in your jest config
 
 #### Method 1
 
-The simplest way to use this plugin is by replacing the `babel-jest` transformer with the `@gtsopanoglou/babel-jest-boost` in your jest config:
+The simplest way to use this plugin is by replacing the `babel-jest` transformer with the `@gtsopanoglou/babel-jest-boost/transformer` in your jest config:
 
 <details>
   <summary>jest.config.js</summary>
@@ -31,65 +29,13 @@ The simplest way to use this plugin is by replacing the `babel-jest` transformer
 ```diff
 "transform": {
 -  "\\.[jt]sx?$": "babel-jest"
-+  "\\.[jt]sx?$": "@gtsopanoglou/babel-jest-boost"
++  "\\.[jt]sx?$": "@gtsopanoglou/babel-jest-boost/transformer"
 }
 ```
 </details>
 
 
-
 #### Method 2
-
-If you are using a script file as your transformer, you can swap the `babel-jest` transformer factory for `gtsopanoglou/babel-jest-boost` in your script. Example from ejected CRA:
-
-<details>
-  <summary>jest.config.js</summary>
-  
-```javascript
-"transform": {
-  "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "<rootDir>/config/jest/babelTransform.js",
-},
-```
-</details>
-
-<details>
-  <summary>config/jest/babelTransform.js</summary>
-  
-```diff
--const babelJest = require('babel-jest')
-+const babelJest = require('@gtsopanoglou/babel-jest-boost')
-
-const hasJsxRuntime = (() => {
-  if (process.env.DISABLE_NEW_JSX_TRANSFORM === 'true') {
-    return false
-  }
-
-  try {
-    require.resolve('react/jsx-runtime')
-    return true
-  } catch (e) {
-    return false
-  }
-})()
-
-module.exports = babelJest.createTransformer({
-  presets: [
-    [
-      require.resolve('babel-preset-react-app'),
-      {
-        runtime: hasJsxRuntime ? 'automatic' : 'classic'
-      }
-    ]
-  ],
-  babelrc: false,
-  configFile: false
-+}, {
-+   // babel-jest-boost plugin options
-})
-```
-</details>
-
-#### Method 3
 
 You may use `babel-jest-boost` as a regular babel plugin. It needs access to your jest config (`moduleNameMapper` and `modulePaths` in particular). To help you do that we export a `jestConfig` object. Again an example from an ejected CRA:
 
@@ -134,7 +80,7 @@ module.exports = babelJest.createTransformer({
   ],
 + plugins: [
 +   [
-+     require.resolve('@gtsopanoglou/babel-jest-boost/plugin'),
++     require.resolve('@gtsopanoglou/babel-jest-boost'),
 +     {
 +        jestConfig,
 +        // babel-jest-boost plugin options
