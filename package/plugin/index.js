@@ -166,25 +166,17 @@ module.exports = function babelPlugin(babel, options) {
               toRemove.push(index);
             }
           });
-          if (
-            toRemove.length > 1 &&
-            toRemove.length === path.node.specifiers.length
-          ) {
-            path.remove();
-          } else if (toRemove.length > 0) {
-            removeItemsByIndexesInPlace(toRemove, path.node.specifiers);
+
+          if (toRemove.length) {
+            if (toRemove.length === path.node.specifiers.length) {
+              // The whole line is up for removal
+              path.remove();
+            } else {
+              // Only some specifiers are up for removal
+              removeItemsByIndexesInPlace(toRemove, path.node.specifiers);
+            }
           }
         });
-        // } catch (e) {
-        //   console.log('===============================  failed to process ');
-        //   console.log('===============================  failed to process ');
-        //   console.log('===============================  failed to process ');
-        //   console.log('===============================  failed to process ');
-        //   console.log('===============================  failed to process ');
-        //   console.log('===============================  failed to process ');
-        //   console.log('===============================  failed to process ');
-        //   console.log('===============================  failed to process ', e);
-        // }
       },
     },
   };
