@@ -100,10 +100,8 @@ module.exports = function babelPlugin(babel, options) {
 
                 if (path.node.specifiers.length === 1) {
                   path.remove();
-                  return;
                 } else if (path.node.specifiers.length > 1) {
                   toRemove.push(index);
-                  return;
                 }
               }
               return;

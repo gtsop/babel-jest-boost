@@ -26,26 +26,26 @@ describe("babel-jest-boost plugin import rewrites when using @babel/preset-env",
   it("correctly traces specifiers within all import syntaxes", () => {
     expectTransform(
       "import target from './test_tree/default';",
-      `var _index = _interopRequireDefault(require("${__dirname}/test_tree/default/index.js"))`,
+      `var _index = _interopRequireDefault(require("${__dirname}/test_tree/default/index.js"));`,
     );
     expectTransform(
       "import * as target from './test_tree/library';",
-      `var target = _interopRequireWildcard(require("${__dirname}/test_tree/library/index.js"))`,
+      `var target = _interopRequireWildcard(require("${__dirname}/test_tree/library/index.js"));`,
     );
     expectTransform(
       "import { library } from './test_tree/library_as'; const target = library.target;",
       [
-        `var library = _interopRequireWildcard(require("${__dirname}/test_tree/library_as/library.js"))`,
+        `var library = _interopRequireWildcard(require("${__dirname}/test_tree/library_as/library.js"));`,
         "var target = library.target;",
       ],
     );
     expectTransform(
       "import { target } from './test_tree/library';",
-      `var _library = require("${__dirname}/test_tree/library/library.js")`,
+      `var _library = require("${__dirname}/test_tree/library/library.js");`,
     );
     expectTransform(
       "import { target as one } from './test_tree/library';",
-      `var _library = require("${__dirname}/test_tree/library/library.js")`,
+      `var _library = require("${__dirname}/test_tree/library/library.js");`,
     );
     expectTransform("import { one, two, target } from './test_tree/library';", [
       `var _library = require("${__dirname}/test_tree/library/library.js");`,
@@ -60,7 +60,7 @@ describe("babel-jest-boost plugin import rewrites when using @babel/preset-env",
     );
     expectTransform(
       "import { 'some string' as target } from './test_tree/as_str';",
-      `var _library = require("${__dirname}/test_tree/library/library.js")`,
+      `var _library = require("${__dirname}/test_tree/library/library.js");`,
     );
     expectTransform(
       "import defaultSpecifier, { target } from './test_tree/default_and_list';",
