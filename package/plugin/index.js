@@ -99,8 +99,10 @@ module.exports = function babelPlugin(babel, options) {
                 );
 
                 if (path.node.specifiers.length === 1) {
+                  // import * as Something from './somewhere';
                   path.remove();
                 } else if (path.node.specifiers.length > 1) {
+                  // import defaultSpecifier, * as Something from './somewhere';
                   toRemove.push(index);
                 }
               }
@@ -127,38 +129,41 @@ module.exports = function babelPlugin(babel, options) {
               return;
             }
 
-            if (specifierOrigin) {
-              // Transform the import statement
-              // If this is a single specifier, as
-              // import { foo } from './foo.js'
-              // then just replace the source
+            if (!specifierOrigin) {
+              // For whatever reason, the specifier was not traced. We will
+              // just replace the resolved path in the import statement
+              path.node.source = babel.types.stringLiteral(resolved);
+              return;
+            }
 
-              if (path.node.specifiers.length === 1) {
-                if (specifier.local.name === specifierOrigin.name) {
-                  // just replace the import path;
-                  path.node.source = babel.types.stringLiteral(
-                    specifierOrigin.source,
-                  );
-                  return;
-                }
+            // Transform the import statement
+            // If this is a single specifier, as
+            // import { foo } from './foo.js'
+            // then just replace the source
 
-                const newImport = getNewImport(specifierOrigin, specifier);
-
-                path.replaceWith(newImport);
-                path.skip();
+            if (path.node.specifiers.length === 1) {
+              if (specifier.local.name === specifierOrigin.name) {
+                // just replace the import path;
+                path.node.source = babel.types.stringLiteral(
+                  specifierOrigin.source,
+                );
                 return;
               }
-              // If this is a multiple specifier, as
-              // import { foo, bar } from './foo.js'
-              // then remove the current specifier and create a new import
-              if (path.node.specifiers.length > 1) {
-                const newImport = getNewImport(specifierOrigin, specifier);
 
-                path.insertBefore([newImport]);
-                toRemove.push(index);
-              }
-            } else {
-              path.node.source = babel.types.stringLiteral(resolved);
+              const newImport = getNewImport(specifierOrigin, specifier);
+
+              path.replaceWith(newImport);
+              path.skip();
+              return;
+            }
+            // If this is a multiple specifier, as
+            // import { foo, bar } from './foo.js'
+            // then remove the current specifier and create a new import
+            if (path.node.specifiers.length > 1) {
+              const newImport = getNewImport(specifierOrigin, specifier);
+
+              path.insertBefore([newImport]);
+              toRemove.push(index);
             }
           });
           if (
