@@ -8,6 +8,13 @@ const {
 const { removeItemsByIndexesInPlace, getNewImport } = require("./utils");
 const { rewriteMocks } = require("./codemods/jest-mock/rewrite-mocks");
 
+function resolveBabelPath(babelPath, babelState) {
+  return resolve(
+    babelPath.node.source.value,
+    nodepath.dirname(babelState.file.opts.filename),
+  );
+}
+
 module.exports = function babelPlugin(babel, options) {
   initializeHelpers({
     modulePaths: options.jestConfig?.modulePaths || [],
@@ -15,6 +22,11 @@ module.exports = function babelPlugin(babel, options) {
     ignoreNodeModules: options.ignoreNodeModules || false,
     importWhiteList: options.importIgnorePatterns || [],
   });
+
+  function usingResolvedPath(babelPath, babelState, callback) {
+    const resolved = resolveBabelPath(babelPath, babelState);
+    callback(resolved);
+  }
 
   return {
     visitor: {
@@ -55,58 +67,48 @@ module.exports = function babelPlugin(babel, options) {
           return;
         }
 
-        const toRemove = [];
         if (isPathWhitelisted(path.node.source.value)) {
+          // file is in `importIgnorePatterns`
           return;
         }
-        // import 'some-raw-file.css'
-        if (path.node.specifiers.length === 0) {
-          const resolved = resolve(
-            path.node.source.value,
-            nodepath.dirname(state.file.opts.filename),
-          );
-          if (resolved !== path.node.source.value) {
-            path.replaceWith(
-              babel.types.importDeclaration(
-                [],
-                babel.types.stringLiteral(resolved),
-              ),
-            );
-          }
-          return;
-        }
-        path?.node?.specifiers?.forEach((specifier, index) => {
-          // import * as Something from './somewhere';
 
-          if (babel.types.isImportNamespaceSpecifier(specifier)) {
-            const resolved = resolve(
-              path.node.source.value,
-              nodepath.dirname(state.file.opts.filename),
-            );
+        usingResolvedPath(path, state, function (resolved) {
+          // import 'some-raw-file.css'
+          if (path.node.specifiers.length === 0) {
             if (resolved !== path.node.source.value) {
-              path.insertBefore(
+              path.replaceWith(
                 babel.types.importDeclaration(
-                  [babel.types.importNamespaceSpecifier(specifier.local)],
+                  [],
                   babel.types.stringLiteral(resolved),
                 ),
               );
-              if (path.node.specifiers.length === 1) {
-                path.remove();
-                return;
-              } else if (path.node.specifiers.length > 1) {
-                toRemove.push(index);
-                return;
-              }
             }
             return;
           }
 
-          const importedFrom = resolve(
-            path.node.source.value,
-            nodepath.dirname(state.file.opts.filename),
-          );
+          const toRemove = [];
+          path.node.specifiers.forEach((specifier, index) => {
+            // import * as Something from './somewhere';
+            if (babel.types.isImportNamespaceSpecifier(specifier)) {
+              if (resolved !== path.node.source.value) {
+                path.insertBefore(
+                  babel.types.importDeclaration(
+                    [babel.types.importNamespaceSpecifier(specifier.local)],
+                    babel.types.stringLiteral(resolved),
+                  ),
+                );
 
-          if (importedFrom) {
+                if (path.node.specifiers.length === 1) {
+                  path.remove();
+                  return;
+                } else if (path.node.specifiers.length > 1) {
+                  toRemove.push(index);
+                  return;
+                }
+              }
+              return;
+            }
+
             const isDefaultImport =
               babel.types.isImportDefaultSpecifier(specifier);
 
@@ -115,13 +117,13 @@ module.exports = function babelPlugin(babel, options) {
             try {
               specifierOrigin = traceSpecifierOrigin(
                 isDefaultImport ? "default" : specifier.imported.name,
-                importedFrom,
+                resolved,
               );
             } catch (e) {
               console.log(
                 "failed to trace",
                 path.node.source.value,
-                importedFrom,
+                resolved,
                 e.message,
               );
               return;
@@ -158,18 +160,18 @@ module.exports = function babelPlugin(babel, options) {
                 toRemove.push(index);
               }
             } else {
-              path.node.source = babel.types.stringLiteral(importedFrom);
+              path.node.source = babel.types.stringLiteral(resolved);
             }
+          });
+          if (
+            toRemove.length > 1 &&
+            toRemove.length === path.node.specifiers.length
+          ) {
+            path.remove();
+          } else if (toRemove.length > 0) {
+            removeItemsByIndexesInPlace(toRemove, path.node.specifiers);
           }
         });
-        if (
-          toRemove.length > 1 &&
-          toRemove.length === path.node.specifiers.length
-        ) {
-          path.remove();
-        } else if (toRemove.length > 0) {
-          removeItemsByIndexesInPlace(toRemove, path.node.specifiers);
-        }
         // } catch (e) {
         //   console.log('===============================  failed to process ');
         //   console.log('===============================  failed to process ');
